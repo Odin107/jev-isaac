@@ -15,6 +15,7 @@ from typing import Callable
 
 from .protocol import MAX_DATAGRAM, MAX_FRAME_AGE, Observation, encode_action
 from .combat_stall import CombatStallWatchdog, NO_COMBAT_OBJECTIVE, no_living_enemies
+from .combat_feedback import CombatFeedback
 
 
 _RECOVERABLE_NAVIGATION_STOPS = frozenset({
@@ -399,6 +400,7 @@ class Controller:
             drain_incomplete = False
             seen_sessions = set()
             stall_watchdog = CombatStallWatchdog()
+            combat_feedback = CombatFeedback()
             switch_navigator = None
             objective_status = None
             last_override = last_player_status = None
@@ -429,6 +431,7 @@ class Controller:
                 ability_state = None
                 ability_blocked.clear()
                 stall_watchdog.reset()
+                combat_feedback.reset()
                 if switch_navigator is not None:
                     switch_navigator.reset()
                 if self.jev_player and explorer is not None:
@@ -595,7 +598,11 @@ class Controller:
                                     != _observation_epoch_key(observation, address)):
                                 epoch += 1
                                 pending_ability = None
+                            if peer is not None and peer != address:
+                                combat_feedback.reset()
                             latest, peer, latest_time = observation, address, received_at
+                            if self.jev_player:
+                                combat_feedback.observe(observation.data)
                             seen_sessions.add(observation.identity[0])
                             if navigation_recovery is not None:
                                 navigation_recovery.observe(observation)
@@ -841,6 +848,9 @@ class Controller:
                                                 self.stats.player_decisions.append({"frame": source.frame, "kind": action.kind,
                                                     "target_id": action.target_id, "fire": action.fire_direction,
                                                     "fire_judgment": action.fire_judgment,
+                                                    "combat_judgment": getattr(action, "combat_judgment", None),
+                                                    "combat_feedback_at_request": copy.deepcopy(source.data.get(
+                                                        "_controller_context", {}).get("combat_feedback")),
                                                     "reply_age_ms": round(elapsed*1000, 1),
                                                     "aim_at_request": aim_audit(source.data), "aim_at_reply": aim_audit(latest.data)})
                                                 del self.stats.player_decisions[:-80]
@@ -1043,6 +1053,7 @@ class Controller:
                                     "goal_lifetime_ms": self.goal_max_age*1000,
                                     "previous_goal": ({"kind": current_goal[0].kind,
                                         "target_id": current_goal[0].target_id,
+                                        "fire_direction": getattr(current_goal[0], "fire_direction", None),
                                         "age_ms": round((now-current_goal[1])*1000, 1)}
                                         if current_goal is not None else None),
                                     "last_local_command": ({k: self.stats.recent_local_controls[-1][k]
@@ -1052,6 +1063,20 @@ class Controller:
                                     "last_navigation_stop": ({k: self.stats.last_navigation_stop[k]
                                         for k in ("reason", "frame")} if self.stats.last_navigation_stop else None),
                                 }
+                                if self.jev_player:
+                                    # Rearming may have reset control after the
+                                    # packet was observed above. Rebaseline that
+                                    # fresh packet; duplicate frames are ignored.
+                                    combat_feedback.observe(latest.data)
+                                    local_context["combat_feedback"] = combat_feedback.context(latest.data)
+                                    recent_latency = sorted(self.stats.latency_ms[-20:])
+                                    local_context["decision_timing"] = {
+                                        "request_rate_limit_hz": self.max_hz,
+                                        "recent_reply_samples": len(recent_latency),
+                                        "recent_reply_median_ms": (round(recent_latency[len(recent_latency)//2], 1)
+                                                                   if recent_latency else None),
+                                        "meaning": "Past wall-clock request latency, not a prediction or extra game time; play continues while waiting.",
+                                    }
                                 if explorer is not None and callable(getattr(explorer, "decision_context", None)):
                                     local_context["exploration"] = explorer.decision_context()
                                 source = Observation(dict(source.data, _controller_context=copy.deepcopy(local_context)))

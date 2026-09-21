@@ -30,11 +30,10 @@ class BackOffPolicyTests(unittest.TestCase):
         observed = state([enemy(f"target-{index:02}") for index in range(64)])
         decision, request = call(observed, {"goal": "back_off_enemy_63", "fire": "none"})
         self.assertEqual((decision.kind, decision.target_id), ("back_off", "target-63"))
-        criteria = request["questions"]["goal"]["criteria"]
-        self.assertEqual(len(criteria), 130)
         self.assertEqual(len(request["state"]["goal_candidates"]), 128)
-        self.assertEqual({"hold", "evade"}, set(criteria) - {
-            c["option"] for c in request["state"]["goal_candidates"]})
+        self.assertEqual(len(request["state"]["combat_groups"]), 3)
+        self.assertTrue(all(len(q["criteria"]) <= 255 for q in request["questions"].values()))
+        self.assertEqual(decision.combat_judgment["question"], "combat_2")
 
     def test_invalid_targets_cannot_become_back_off_options(self):
         observed = state([enemy("dead", dead=True), enemy("empty", hp=0),
@@ -42,7 +41,9 @@ class BackOffPolicyTests(unittest.TestCase):
                           enemy("duplicate", x=220)])
         _, request = call(observed, {"goal": "hold", "fire": "none"})
         self.assertEqual(request["state"]["goal_candidates"], [])
-        self.assertEqual(set(request["questions"]["goal"]["criteria"]), {"hold", "evade"})
+        self.assertEqual(set(request["questions"]["combat"]["criteria"]),
+            {f"{kind}__{fire}" for kind in ("hold", "evade")
+             for fire in ("none", "left", "right", "up", "down")})
 
     def test_source_mutation_cannot_rebind_back_off_target(self):
         observed = state([enemy("first"), enemy("second")])
@@ -56,14 +57,16 @@ class BackOffPolicyTests(unittest.TestCase):
 
     def test_argmax_correction_resolves_back_off_and_records_its_original_choice(self):
         def mutate(answer):
-            answer["answers"]["goal"].update(choice="enemy_0", confidence=.7,
-                probabilities={"hold": .1, "evade": .1, "enemy_0": .1, "back_off_enemy_0": .7})
+            joint = answer["answers"]["combat"]
+            probabilities = {key: 0. for key in joint["probabilities"]}
+            probabilities.update(hold__down=.1, evade__down=.1, enemy_0__down=.1, back_off_enemy_0__down=.7)
+            joint.update(choice="enemy_0__down", confidence=.7, probabilities=probabilities)
         decision, _ = call(state(), {"goal": "enemy_0", "fire": "down"}, mutate)
         self.assertEqual((decision.kind, decision.target_id, decision.fire_direction),
                          ("back_off", "target-A", "down"))
         correction, = decision.choice_corrections
-        self.assertEqual(correction["reported_choice"], "enemy_0")
-        self.assertEqual(correction["effective_choice"], "back_off_enemy_0")
+        self.assertEqual(correction["reported_choice"], "enemy_0__down")
+        self.assertEqual(correction["effective_choice"], "back_off_enemy_0__down")
 
     def test_back_off_does_not_choose_or_remove_parallel_fire_and_ability(self):
         observed = state()
@@ -72,13 +75,13 @@ class BackOffPolicyTests(unittest.TestCase):
             with self.subTest(fire=fire):
                 decision, request = call(observed, {"goal": "back_off_enemy_0", "fire": fire,
                                                      "ability": "ability_0"})
-                self.assertEqual(set(request["questions"]), {"goal", "fire", "ability"})
+                self.assertEqual(set(request["questions"]), {"combat", "ability"})
                 self.assertEqual((decision.fire_direction, decision.ability_key), (fire, "active:34"))
-                self.assertEqual(decision.fire_judgment["probabilities"][fire], 1.)
+                self.assertEqual(decision.combat_judgment["probabilities"][f"back_off_enemy_0__{fire}"], 1.)
 
     def test_unbound_back_off_and_invented_target_answers_are_rejected(self):
-        for mutate in (lambda answer: answer["answers"]["goal"].update(choice="back_off_enemy_1"),
-                       lambda answer: answer["answers"]["goal"].update(target_id="invented")):
+        for mutate in (lambda answer: answer["answers"]["combat"].update(choice="back_off_enemy_1__none"),
+                       lambda answer: answer["answers"]["combat"].update(target_id="invented")):
             with self.subTest(mutate=mutate), self.assertRaises(JevResponseError):
                 call(state(), {"goal": "back_off_enemy_0", "fire": "none"}, mutate)
         for target in (None, "", "bad\nid", 17):

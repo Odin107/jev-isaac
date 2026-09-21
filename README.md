@@ -18,8 +18,8 @@ run completion is still unproven. See [the milestone](docs/first-boss.md).
 
 | Jev decides | Local code executes |
 | --- | --- |
-| Engage an enemy, back away from a chosen enemy, hold position or evade | Movement toward the chosen intent; backing away seeks a farther firing position |
-| Fire left, right, up, down or not at all | The exact chosen firing button |
+| A combined combat movement, enemy target and firing input | Movement toward that intent and the exact chosen firing button together |
+| Hold fire left, right, up, down or release it | The exact button state; releasing can fire a charged weapon |
 | Reposition within a cleared room while choosing fire independently | Movement to the chosen position and the current firing button together |
 | Which supported door to enter | Movement through that door |
 | Which supplies, items or purchases to take | Eligibility checks and the selected interaction |
@@ -32,6 +32,12 @@ Emergency dodging can override movement. It does not replace Jev's chosen firing
 direction. Waiting does not automatically pick a room, collect supplies or fire.
 Unsupported mechanics are still filtered locally; not every skipped action is a
 deliberate Jev decision. See [architecture and limits](docs/architecture.md).
+
+Combat choices combine engaging, backing away, holding or evading with the chosen
+firing direction. Jev also receives up to two seconds of observed enemy-health,
+player-heart, movement and input history, plus recent reply timing and local
+movement overrides. This provides feedback without claiming which shots hit or
+forcing a response. Live improvements in survival remain to be measured.
 
 Jev receives item-room discovery/visit status and remembers pickups left in
 visited rooms, including heart types and shop prices. It can weigh returning

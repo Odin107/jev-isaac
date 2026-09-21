@@ -29,8 +29,7 @@ def charged():
 class AdventureControlTests(unittest.TestCase):
     def test_shop_cost_or_resources_changed_cancels_before_movement(self):
         for change in (lambda d: d["pickups"][0].update(price=16),
-                       lambda d: d["player"].update(coins=14),
-                       lambda d: d["pickups"][0].update(x=400)):
+                       lambda d: d["player"].update(coins=14)):
             data = ready(pickup("shop", variant=100, collectible_kind=1, price=15, shop_item=True))
             data["player"]["coins"] = 20
             control = AdventureControl()
@@ -40,6 +39,76 @@ class AdventureControlTests(unittest.TestCase):
             self.assertEqual((action.move, action.interaction), ("none", "none"))
             self.assertIsNone(control.plan)
             self.assertEqual(control.abandoned, 1)
+
+    def test_selected_black_heart_tracks_its_observed_position_after_blast(self):
+        data = ready(pickup("heart", variant=10, subtype=6,
+                            x=304.875, y=287.97387695313), x=400)
+        control = AdventureControl()
+        selected = select(control, data, "collect")
+        # The live failure occurred after only 8.23 units of post-blast drift.
+        data["pickups"][0].update(x=298.93710327148, y=282.28036499023)
+        action = control.step(data, .1)
+        self.assertNotEqual(action.move, "none")
+        self.assertIs(control.plan, selected)
+        self.assertEqual(control.abandoned, 0)
+        # Push the same heart across Isaac: steering must use its new location,
+        # not merely remove the old-position validation and chase that point.
+        data["pickups"][0].update(x=480, y=data["player"]["y"])
+        self.assertEqual(control.step(data, .2).move, "right")
+        self.assertIs(control.plan, selected)
+        data["pickups"] = []
+        control.step(data, .3)
+        self.assertIsNone(control.plan)
+        self.assertEqual(control.completed, 1)
+
+    def test_pickup_motion_while_jev_decides_preserves_the_bound_choice(self):
+        data = ready(pickup("heart", variant=10, subtype=6), x=400)
+        control = AdventureControl()
+        chosen = next(c for c in control.choose_offers(data) if c.kind == "collect")
+        data["pickups"][0].update(x=480, y=data["player"]["y"])
+        self.assertTrue(control.accept(chosen.key, data, .4))
+        self.assertIs(control.plan, chosen)
+        self.assertEqual(control.step(data, .5).move, "right")
+
+    def test_moving_selected_pickup_still_requires_fresh_eligibility_and_route(self):
+        changes = (lambda d: d["pickups"][0].update(options_index=2),
+                   lambda d: d["pickups"][0].update(price=3, shop_item=True),
+                   lambda d: d["player"].update(can_pick_black_hearts=False),
+                   lambda d: d["pickups"][0].update(wait=5),
+                   lambda d: d["hazards"].append(grid(480, 280)))
+        for change in changes:
+            with self.subTest(change=change):
+                data = ready(pickup("heart", variant=10, subtype=6), x=400)
+                control = AdventureControl()
+                select(control, data, "collect")
+                data["pickups"][0].update(x=480, y=280)
+                change(data)
+                action = control.step(data, .1)
+                self.assertEqual((action.move, action.interaction), ("none", "none"))
+                self.assertIsNone(control.plan)
+                self.assertEqual(control.abandoned, 1)
+
+    def test_missing_moving_target_never_selects_another_heart(self):
+        data = ready(pickup("chosen", variant=10, subtype=6), x=400)
+        control = AdventureControl()
+        select(control, data, "collect")
+        data["pickups"] = [pickup("different", variant=10, subtype=6, x=480)]
+        action = control.step(data, .1)
+        self.assertEqual((action.move, action.interaction), ("none", "none"))
+        self.assertIsNone(control.plan)
+
+    def test_moving_purchase_tracks_same_item_without_changing_price(self):
+        data = ready(pickup("shop", variant=100, collectible_kind=1,
+                            price=15, shop_item=True), x=400)
+        data["player"]["coins"] = 20
+        control = AdventureControl()
+        chosen = select(control, data, "buy")
+        data["pickups"][0].update(x=480, y=data["player"]["y"])
+        self.assertEqual(control.step(data, .1).move, "right")
+        self.assertIs(control.plan, chosen)
+        data["pickups"][0]["price"] = 16
+        self.assertEqual(control.step(data, .2).move, "none")
+        self.assertIsNone(control.plan)
 
     def test_target_morph_never_walks_toward_old_purchase(self):
         data = ready(pickup("item", variant=100, collectible_kind=1))

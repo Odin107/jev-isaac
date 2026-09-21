@@ -185,9 +185,16 @@ class AdventureControl:
             if math.dist(_point(state["player"]), plan.point) <= 45:
                 self.phase = "crossing"  # Finish crossing after the first damage; never oscillate at spikes.
             return InteractionAction(move=move, status=plan.description)
+        target_point = plan.point
         if plan.pickup_signature and plan.kind != "bomb_rock":
-            if not any(signature(item) == plan.pickup_signature for item in state["pickups"]):
+            item = next((item for item in state["pickups"]
+                         if signature(item) == plan.pickup_signature), None)
+            if item is None:
                 return self._finish(state, success=True, reason="target changed or disappeared; rechecking rewards")
+            # Pickups can still bounce or be pushed after Jev chooses them.
+            # Follow the same observed identity, while fresh validation below
+            # retains the chosen price, eligibility, option group and route.
+            target_point = _point(item)
         if plan.kind == "unlock_door":
             door = next((d for d in state["doors"] if d["slot"] == plan.details["slot"]
                          and d["target_index"] == plan.details["target_index"]), None)
@@ -241,10 +248,10 @@ class AdventureControl:
                 return InteractionAction(status="waiting outside bomb range")
             move = self._move(state, plan.point)
         else:
-            move = self._move(state, plan.point)
+            move = self._move(state, target_point)
         if move is None:
             return self._finish(state, reason="no walking route to selected interaction")
-        distance = math.dist(_point(state["player"]), plan.point)
+        distance = math.dist(_point(state["player"]), target_point)
         if self.progress_distance is None or self.progress_distance - distance >= 8:
             self.progress_distance, self.progress_at = distance, now
         if now - self.progress_at >= 3:

@@ -7,6 +7,7 @@ from .jev import MAX_RESPONSE_BYTES, JevResponseError, _parse_choice, _unique_ob
 from .state_context import CONTEXT_INSTRUCTIONS
 from .strategy import StrategyDecision, _options
 from .combat import build_combat_context, current_firing_view
+from .combat_choices import build_combat_choices, selected_combat_question
 
 
 @dataclass(frozen=True)
@@ -14,6 +15,7 @@ class PlayerGoalDecision(GoalDecision):
     fire_direction: str = "none"
     ability_key: str | None = None
     fire_judgment: dict | None = None
+    combat_judgment: dict | None = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -37,7 +39,9 @@ def player_contract(payload, phase):
         "objective": "Play toward completing the run. Exploration, resource use, risk and timing are Jev's decisions within the available controls.",
         "local_execution": "Pathfinding executes the movement goal; the firing button follows Jev's direction. No independent pickups, room order or puzzle selection.",
         "exceptions": "Fresh immediate collision avoidance may change movement and is reported. Expired or changed-state intent is canceled. A committed explosive retreat finishes before another decision.",
-        "firing": "Movement/activity and firing are independent choices in the same request. The firing button uses the current weapon. Selected shoot_prop, demolish_tnt and bomb_rock routines own firing/retreat while active; the separate fire answer is ignored for those routines.",
+        "firing": ("Combat movement, target and exact firing input are selected as one bound action. "
+                   if phase == "combat" else "Activity and firing are independent choices in the same request. ")
+                  + "The firing button uses the current weapon. Selected shoot_prop, demolish_tnt and bomb_rock routines own firing/retreat while active; the separate activity-fire answer is ignored for those routines.",
         "limits": "Only offered, implemented actions can execute; missing choices may be a mechanics/geometry limitation. Unknown contents and effects remain unknown.",
     }
 
@@ -117,53 +121,11 @@ class PlayerClient(GoalClient):
             goals = [dict(target, kind="engage") for target in targets]
             goals.extend({"option": f"back_off_{target['option']}", "id": target["id"],
                           "kind": "back_off"} for target in targets)
-            bindings = {v["option"]: v["id"] for v in goals}
-            goal_kinds = {v["option"]: v["kind"] for v in goals}
             payload["state"]["goal_candidates"] = goals
-            payload["questions"] = {
-                "goal": {"type": "choice", "instructions": (
-                    "Choose your movement intention in The Binding of Isaac: engage a listed enemy "
-                    "to seek a clear firing position, back off from a listed enemy to try shooting from "
-                    "farther away, evade threats, or hold position. A back_off choice takes a directly "
-                    "checked retreat toward a farther cardinal firing position, without an inward detour. "
-                    "The executor uses at most 220 world units of separation, reduced to observed "
-                    "ordinary-tear range minus 20 when shorter. This is approximate geometry for "
-                    "unknown or special weapons, not a guaranteed shot range. It holds movement if "
-                    "the selected target disappears or no safe farther position is available, except "
-                    "for immediate collision avoidance or recovery from an obstacle's safety margin. You own the "
-                    "target; the local executor will not pursue a different one. Emergency collision "
-                    "avoidance may change a short movement. This answer does NOT authorize shooting; "
-                    "the independent fire answer does. Obstacles, health and threat motion are observed state. "
-                    "Unknown enemy phases and effects stay unknown." + CONTEXT_INSTRUCTIONS),
-                    "criteria": {"hold": "Hold position, subject to immediate collision avoidance; no implied shooting.",
-                                 "evade": "Move away from nearby threats; no implied shooting.",
-                                 **{o: f"Engage observed enemy {ident}; seek alignment with that target."
-                                    if goal_kinds[o] == "engage" else
-                                    f"Back off from observed enemy {ident}; seek a farther firing position "
-                                    "by a direct checked retreat within the stated distance limits. No implied shooting."
-                                    for o, ident in bindings.items()}}},
-                "fire": {"type": "choice", "instructions": (
-                    "Choose your firing input now to play toward completing the run. You own aiming. "
-                    "`firing_now.directions` groups living vulnerable enemies by direction from the CURRENT "
-                    "player position: enemies_on_side need not be aligned; aligned_enemies cross that straight "
-                    "firing lane; grid_clear_aligned_enemies also have no observed solid-grid blocker. "
-                    "Null means unknown. These are geometry facts, not guaranteed hits or required choices. "
-                    "`combat_context.targets` gives distances and offsets; `observation` includes weapon, "
-                    "objects and threats. Shots can trigger explosives. "
-                    "Past `observation.control` and controller memory describe previous inputs, not a request "
-                    "to repeat them. `combat_context.firing_positions` are hypothetical future positions; their shoot "
-                    "directions do not describe shots from here. "
-                    "You can shoot while moving, backing off, holding or evading. The movement answer is independent and "
-                    "unknown to this question. Use observed player vx/vy: momentum can deflect tears diagonally "
-                    "and persists after movement release; exact inheritance is uncalibrated. "
-                    "Equal consecutive directions hold the button; none releases it, including for charge/release "
-                    "weapons. Local code preserves your fire choice. Coordinates: x right, y down."),
-                    "criteria": {"none": "Do not shoot.",
-                                 "left": "Press LEFT: firing input toward smaller x, to the LEFT of the player. Momentum can deflect tears.",
-                                 "right": "Press RIGHT: firing input toward larger x, to the RIGHT of the player. Momentum can deflect tears.",
-                                 "up": "Press UP: firing input toward smaller y, ABOVE the player. Momentum can deflect tears.",
-                                 "down": "Press DOWN: firing input toward larger y, BELOW the player. Momentum can deflect tears."}},
-            }
+            questions, combat_bindings, combat_groups = build_combat_choices(targets)
+            payload["questions"] = questions
+            payload["state"]["combat_groups"] = combat_groups
+            payload["state"]["combat_choice_mode"] = "joint" if len(combat_groups) == 1 else "joint_grouped"
             if abilities:
                 abilities = _options(abilities)
                 ability_bindings = {f"ability_{i}": c["key"] for i, c in enumerate(abilities)}
@@ -192,7 +154,7 @@ class PlayerClient(GoalClient):
                 raise ValueError()
             if any(type(usage.get(k)) is not int or usage[k] < 0 for k in ("input_tokens", "output_tokens")):
                 raise ValueError()
-            choices, corrections, fire_judgment = {}, [], None
+            choices, judgments, corrections, fire_judgment = {}, {}, [], None
             for key, question in payload["questions"].items():
                 answer = decoded["answers"][key]
                 if not isinstance(answer, dict) or set(answer) != {"type", "choice", "confidence", "probabilities"}:
@@ -200,6 +162,8 @@ class PlayerClient(GoalClient):
                 chosen, confidence, probabilities, correction = _parse_choice(answer, tuple(question["criteria"]), key,
                                                          self.provider, self.choice_policy)
                 choices[key] = chosen
+                judgments[key] = {"reported_choice": answer["choice"], "effective_choice": chosen,
+                                  "confidence": confidence, "probabilities": probabilities}
                 if key == "fire":
                     fire_judgment = {"reported_choice": answer["choice"],
                                      "confidence": confidence, "probabilities": probabilities}
@@ -213,8 +177,12 @@ class PlayerClient(GoalClient):
             return PlayerActivityDecision("adventure", target, elapsed,
                                           model, usage, tuple(corrections), choices.get("fire", "none"),
                                           fire_judgment=fire_judgment)
-        choice = choices["goal"]
-        return PlayerGoalDecision(goal_kinds.get(choice, choice), bindings.get(choice),
+        question = selected_combat_question(choices, combat_groups)
+        selected = combat_bindings[question][choices[question]]
+        judgment = {"question": question, **judgments[question]}
+        if "combat_group" in judgments:
+            judgment["group_selection"] = judgments["combat_group"]
+        return PlayerGoalDecision(selected["kind"], selected["target_id"],
                                   elapsed, model, usage, tuple(corrections),
-                                  choices["fire"], ability_bindings.get(choices.get("ability")),
-                                  fire_judgment=fire_judgment)
+                                  selected["fire_direction"], ability_bindings.get(choices.get("ability")),
+                                  combat_judgment=judgment)

@@ -15,6 +15,17 @@ from test_navigation import state as moving_state, enemy as moving_enemy
 
 
 def reply(request, choices):
+    # Older controller scenarios specify component intentions. Encode them into
+    # the actual joint wire choice; explicit combat choices pass through unchanged.
+    choices = dict(choices)
+    if "goal" in choices and request["state"].get("combat_groups"):
+        paired = f"{choices['goal']}__{choices.get('fire', 'none')}"
+        for group in request["state"]["combat_groups"]:
+            question = group["question"]
+            if paired in request["questions"][question]["criteria"]:
+                choices.setdefault(question, paired)
+                choices.setdefault("combat_group", group["option"])
+                break
     return {"model": "jev-offline", "usage": {"input_tokens": 400, "output_tokens": 60},
             "answers": {key: {"type": "choice", "choice": choices.get(key, next(iter(q["criteria"]))),
                 "confidence": 1., "probabilities": {option: float(option == choices.get(key, next(iter(q["criteria"]))))
@@ -49,7 +60,7 @@ class PlayerPolicyTests(unittest.TestCase):
         self.assertEqual(view["left"]["enemies_on_side"], [])
         # Factual hints do not silently replace an unhelpful model choice.
         self.assertEqual(decision.fire_direction, "left")
-        self.assertEqual(decision.fire_judgment["probabilities"]["left"], 1.)
+        self.assertEqual(decision.combat_judgment["probabilities"]["hold__left"], 1.)
         data["enemies"][0].update(x=50)
         _, request = call(data, {"goal": "hold", "fire": "right"})
         view = request["state"]["firing_now"]["directions"]
@@ -60,24 +71,22 @@ class PlayerPolicyTests(unittest.TestCase):
         def change(answer):
             answer["answers"]["fire"].update(choice="left", confidence=.25,
                 probabilities={"none": .05, "left": .1, "right": .65, "up": .15, "down": .05})
-        for activities in (False, True):
-            with self.subTest(activities=activities):
-                data = state()
-                if activities:
-                    data["room"]["clear"] = True
-                    data["_adventure_options"] = [choice("collect:1")]
-                decision, _ = call(data, {"goal": "hold", "activity": "wait", "fire": "left"}, change)
-                self.assertEqual(decision.fire_direction, "right")
-                self.assertEqual(decision.fire_judgment, {"reported_choice": "left", "confidence": .25,
-                    "probabilities": {"none": .05, "left": .1, "right": .65, "up": .15, "down": .05}})
-                self.assertEqual(decision.choice_corrections[0]["question"], "fire")
+        data = state()
+        data["room"]["clear"] = True
+        data["_adventure_options"] = [choice("collect:1")]
+        decision, _ = call(data, {"activity": "wait", "fire": "left"}, change)
+        self.assertEqual(decision.fire_direction, "right")
+        self.assertEqual(decision.fire_judgment, {"reported_choice": "left", "confidence": .25,
+            "probabilities": {"none": .05, "left": .1, "right": .65, "up": .15, "down": .05}})
+        self.assertEqual(decision.choice_corrections[0]["question"], "fire")
 
-    def test_hold_and_fire_are_independent_explicit_model_choices(self):
+    def test_hold_and_fire_are_one_explicit_model_choice(self):
         decision, request = call(state(), {"goal": "hold", "fire": "right"})
         self.assertEqual((decision.kind, decision.fire_direction), ("hold", "right"))
-        self.assertEqual(set(request["questions"]), {"goal", "fire"})
-        self.assertEqual(set(request["questions"]["fire"]["criteria"]), {"none", "left", "right", "up", "down"})
-        self.assertIn("no implied shooting", request["questions"]["goal"]["criteria"]["hold"])
+        self.assertEqual(set(request["questions"]), {"combat"})
+        for fire in ("none", "left", "right", "up", "down"):
+            self.assertIn(f"hold__{fire}", request["questions"]["combat"]["criteria"])
+        self.assertIn("release", request["questions"]["combat"]["criteria"]["hold__none"])
 
     def test_all_observed_vulnerable_targets_are_offered_beyond_the_old_eight(self):
         data = state([enemy(f"enemy-{i:02}", x=140+i*10) for i in range(20)])
@@ -91,8 +100,8 @@ class PlayerPolicyTests(unittest.TestCase):
         data["player"].update(vx=2.5, vy=-.4, shot_speed=1.2)
         before = copy.deepcopy(data)
         _, request = call(data, {"goal": "hold", "fire": "down"})
-        self.assertIn("diagonally", request["questions"]["fire"]["instructions"])
-        self.assertIn("uncalibrated", request["questions"]["fire"]["instructions"])
+        self.assertIn("diagonally", request["questions"]["combat"]["instructions"])
+        self.assertIn("uncalibrated", request["questions"]["combat"]["instructions"])
         self.assertEqual(request["state"]["game_context"]["shooting_motion"]["player_velocity"], {"vx": 2.5, "vy": -.4})
         self.assertEqual(data, before)
 
@@ -112,15 +121,15 @@ class PlayerPolicyTests(unittest.TestCase):
         data = state()
         data["_ability_options"] = [choice("active:34")]
         decision, request = call(data, {"goal": "evade", "fire": "up", "ability": "ability_0"})
-        self.assertEqual(set(request["questions"]), {"goal", "fire", "ability"})
+        self.assertEqual(set(request["questions"]), {"combat", "ability"})
         self.assertEqual((decision.kind, decision.fire_direction, decision.ability_key), ("evade", "up", "active:34"))
 
     def test_missing_extra_unbound_and_nonfinite_answers_are_rejected(self):
-        mutations = [lambda d: d["answers"].pop("fire"),
-                     lambda d: d["answers"].update(move=d["answers"]["goal"]),
-                     lambda d: d["answers"]["fire"].update(choice="diagonal"),
-                     lambda d: d["answers"]["fire"]["probabilities"].update(right=float("nan")),
-                     lambda d: d["answers"]["fire"].update(target_id="invented"),
+        mutations = [lambda d: d["answers"].pop("combat"),
+                     lambda d: d["answers"].update(move=d["answers"]["combat"]),
+                     lambda d: d["answers"]["combat"].update(choice="diagonal"),
+                     lambda d: d["answers"]["combat"]["probabilities"].update(right=float("nan")),
+                     lambda d: d["answers"]["combat"].update(target_id="invented"),
                      lambda d: d["usage"].update(input_tokens=True)]
         for mutate in mutations:
             with self.subTest(mutate=mutate), self.assertRaises(JevResponseError):

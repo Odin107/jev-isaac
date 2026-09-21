@@ -235,7 +235,8 @@ def _bomb_option(state, parsed, item, option):
             kind, reserved, description = option
             cost = dict(reserved, bombs=1)
             return AdventureCandidate(f"bomb:{rock_id}:{item['id']}", "bomb_rock", item["id"],
-                point, cost, f"Spend one bomb to open the rock route, retreat, then {description.lower()}",
+                point, cost, f"Spend one bomb to open the rock route for: {description}; "
+                "retreat, then choose again. Reaching or taking the pickup is a separate activity",
                 interaction="bomb", escape_point=escape, pickup_signature=sig,
                 rock_id=rock_id, context=_context(state),
                 details={"after_kind": kind, "rock_point": center, "target_point": target,
@@ -462,11 +463,12 @@ def candidate_valid(state, candidate, *, rewards_done=False, allow_descend=False
             return False
         kind, cost, _ = option
         if candidate.kind != "bomb_rock":
+            # Bombs and ordinary bouncing can move the selected pickup. Its
+            # identity and terms remain bound; the route uses its fresh point.
             return (candidate.kind == kind and candidate.cost == cost
                     and (candidate.details.get("held_active") is None
                          or player["active_item"] == candidate.details["held_active"])
                     and item["options_index"] == candidate.details.get("options_index", item["options_index"])
-                    and math.dist(candidate.point, _point(item)) <= 8
                     and _reachable(start, _point(item), bounds, _geometry(state, radius, target=signature(item))))
         if not _ordinary_bombs(state) or candidate.cost != dict(cost, bombs=1):
             return False

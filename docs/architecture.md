@@ -38,15 +38,25 @@ interaction helpers. `controller.py` coordinates fresh observations, asynchronou
 model replies, pauses, budgets and reports. `mod/jev_bridge/main.lua` exports the
 state and applies bounded controls after F8 activation.
 
-Combat intent and firing direction are independent questions in one request.
-Neither question can assume it knows the other's answer. Aim hints describe the
-current position; potential future firing positions are labeled separately.
+Player-mode combat uses one source-bound choice for movement, enemy target and
+exact firing input together. `combat_choices.py` offers all five button states
+for engage/back-off for each target, plus hold/evade. Up to 24 targets fit a single
+250-option Choice. Larger observations retain all 64 supported targets through
+at most three groups: Jev selects a group and a speculative complete action for
+each group in the same HTTP request; only the selected group's action executes.
+No cross-group probability multiplication or local target selection is used.
+Group ordering has no strategic meaning. Abilities remain a parallel choice;
+clear-room activity and fire choices are unchanged. Additional options cost
+tokens, and actual latency/survival effects still need live measurement. Request
+cadence, freshness limits and budgets are unchanged.
+
+Aim hints describe the current position; potential future firing positions are labeled separately.
 Jev is told that movement momentum can bend tears across the firing axis.
 Actual tear-velocity inheritance has not been calibrated.
 
 Each player-mode enemy target offers both `engage` and `back_off`. Backing away
-seeks a farther cardinal firing position for that same enemy, while Jev still
-chooses the firing button independently. The executor checks a direct retreat
+seeks a farther cardinal firing position for that same enemy, paired with the
+firing button Jev selected in that action. The executor checks a direct retreat
 against room bounds and obstacles; it does not take an inward detour or pursue
 a replacement target. It uses the existing conservative 220-unit shooting
 envelope, tightened by a shorter observed ordinary-tear range with a 20-unit
@@ -56,6 +66,18 @@ avoidance and obstacle-margin recovery retain their usual overrides. These
 geometry checks do not promise a hit. Fresh goals, expiry and changed-target
 checks apply just as for engaging; the legacy goal-only policy is unchanged.
 
+`combat_feedback.py` retains at most 61 sanitized observations over 60 simulation
+frames (two seconds). It reports adjacent comparable HP changes for stable enemy
+IDs, separate red/soul half-heart changes, sampled input streaks, displacement
+and a lower bound on path distance. Missing/duplicate IDs or unknown values break
+comparisons. Disappearance does not imply a kill, health changes do not identify
+their cause, and firing input does not establish a shot or a hit. Sample counts,
+gaps, truncation and omitted enemy counts remain explicit. A pause, disarm,
+death, new room/run/floor/session, peer change or control reset clears history.
+The next request receives this feedback alongside the latest issued command,
+observed input echo, previous goal/fire and recent measured reply latency.
+Feedback never selects actions or changes inputs.
+
 Combat firing also receives a compact `firing_now` view for each button: enemies
 on that side, enemies aligned with the current straight firing lane, and aligned
 enemies without observed solid-grid blockers. It summarizes current geometry,
@@ -63,9 +85,11 @@ does not rank directions, and does not use previous inputs or future waypoints.
 Incomplete grid clearance is unknown, not an empty list of obstacles. These
 ordinary-tear estimates do not guarantee hits with momentum, range limits,
 moving enemies or special weapons. Previous controls are explicitly history.
-Bounded decision reports retain the validated firing probability distribution
-and current geometry at both request and reply time. This separates repeated
-model choices from changes during response latency; it does not override aim.
+Bounded decision reports retain the validated joint-action probability
+distribution (and group choice when used), outcome feedback at dispatch, and
+current geometry at both request and reply time. Joint probabilities are not
+reported as independent firing probabilities. Clear-room fire-only judgments
+keep their original distribution. These diagnostics do not override aim.
 
 The local loop runs much more frequently than model decisions. Immediate dodges
 can override movement and are logged. Local execution preserves the selected
@@ -127,6 +151,11 @@ unexposed drops remain unknown. The executor checks ordinary-bomb inventory,
 the exact rock, a placement route and a straight retreat, then places one bomb
 and waits outside its range for observed destruction. New drops or openings
 require another Jev decision. The existing bomb-to-pickup plan remains available.
+Its description explicitly says that collection is a separate choice after the
+blast. Once Jev chooses a pickup, collection tracks its fresh observed position:
+bomb knockback or bouncing no longer invalidates an unchanged pickup identity.
+Current cost, eligibility, option group, room identity and reachability are still
+checked; a changed or unavailable pickup never authorizes a replacement.
 Walls, pits, special rocks, modified bombs and explosive chains are outside this
 bounded planner; absent offers do not imply the game mechanic is impossible.
 The bridge converts numeric bomb flags and representable `BitSet128` low/high

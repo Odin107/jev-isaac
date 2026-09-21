@@ -149,8 +149,8 @@ class PlayerControllerTests(unittest.TestCase):
         self.assertEqual(requests[0]["state"]["game_context"]["shooting_motion"]["player_velocity"]["vx"], 1.5)
         self.assertTrue(result["jev_player"])
         decision = result["player_decisions"][0]
-        self.assertEqual(decision["fire_judgment"]["reported_choice"], "up")
-        self.assertEqual(decision["fire_judgment"]["probabilities"]["up"], 1.)
+        self.assertEqual(decision["combat_judgment"]["reported_choice"], "hold__up")
+        self.assertEqual(decision["combat_judgment"]["probabilities"]["hold__up"], 1.)
         for moment in ("aim_at_request", "aim_at_reply"):
             self.assertIn("right", decision[moment]["firing_now"]["directions"])
 

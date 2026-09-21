@@ -82,12 +82,12 @@ class CreepPillsAimTests(unittest.TestCase):
         data['enemies'] = [enemy(f'e{i}', x=100+i*20, y=200) for i in range(20)]
         _, payload = call(data, {'goal': 'hold', 'fire': 'up'})
         self.assertEqual(len(payload['state']['combat_context']['targets']), 20)
-        instruction = payload['questions']['fire']['instructions']
+        instruction = payload['questions']['combat']['instructions']
         self.assertIn('hypothetical future positions', instruction)
-        self.assertIn('CURRENT player position', instruction)
+        self.assertIn('current straight-line geometry', instruction)
         for target in payload['state']['combat_context']['targets']:
             self.assertEqual(target['lanes']['vertical']['direction'], 'up')
-        self.assertIn('ABOVE', payload['questions']['fire']['criteria']['up'])
+        self.assertIn('hold firing up', payload['questions']['combat']['criteria']['hold__up'])
 
     def test_aim_audit_distinguishes_request_position_from_response_position(self):
         data = combat()

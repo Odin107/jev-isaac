@@ -153,6 +153,8 @@ class AdventureTests(unittest.TestCase):
                                 BLAST_RADIUS + data["player"]["radius"] + BLAST_MARGIN)
         self.assertIsNotNone(choice.rock_id)
         self.assertIn("retreat", choice.description)
+        self.assertIn("then choose again", choice.description)
+        self.assertIn("separate activity", choice.description)
         # Advancing to the placement keeps the fixed plan valid.
         data["player"].update(x=choice.point[0], y=choice.point[1])
         self.assertTrue(candidate_valid(data, choice))
