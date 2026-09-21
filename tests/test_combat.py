@@ -6,7 +6,7 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from jev_isaac.combat import build_combat_context
+from jev_isaac.combat import build_combat_context, current_firing_view
 
 
 def state():
@@ -24,6 +24,42 @@ def grid(x, y, collision=3, index=1):
 
 
 class CombatContextTests(unittest.TestCase):
+    def test_current_firing_view_rotates_with_enemy_and_ignores_previous_input(self):
+        for direction, point in {"left": (200, 250), "right": (400, 250),
+                                 "up": (300, 150), "down": (300, 350)}.items():
+            with self.subTest(direction=direction):
+                observed = state()
+                observed["control"] = {"shoot": "left"}
+                observed["enemies"] = [enemy(*point)]
+                context = build_combat_context(observed)
+                context["firing_positions"] = [{"shoot": "left"}]
+                view = current_firing_view(context)
+                self.assertTrue(view["grid_complete"])
+                for button, row in view["directions"].items():
+                    expected = ["target"] if button == direction else []
+                    self.assertEqual(row["enemies_on_side"], expected)
+                    self.assertEqual(row["aligned_enemies"], expected)
+                    self.assertEqual(row["grid_clear_aligned_enemies"], expected)
+
+    def test_current_firing_view_distinguishes_diagonal_blocked_and_unknown(self):
+        observed = state()
+        observed["enemies"] = [enemy(500, 250, "blocked"), enemy(450, 380, "diagonal"),
+                               enemy(200, 250, "dead")]
+        observed["enemies"][-1]["dead"] = True
+        observed["hazards"] = [grid(400, 250)]
+        view = current_firing_view(build_combat_context(observed))["directions"]
+        self.assertEqual(set(view["right"]["enemies_on_side"]), {"blocked", "diagonal"})
+        self.assertEqual(view["right"]["aligned_enemies"], ["blocked"])
+        self.assertEqual(view["right"]["grid_clear_aligned_enemies"], [])
+        self.assertEqual(view["down"]["enemies_on_side"], ["diagonal"])
+        self.assertEqual(view["down"]["aligned_enemies"], [])
+        self.assertEqual(view["left"]["enemies_on_side"], [])
+        del observed["hazards"]
+        view = current_firing_view(build_combat_context(observed))
+        self.assertFalse(view["grid_complete"])
+        self.assertIsNone(view["directions"]["right"]["grid_clear_aligned_enemies"])
+        self.assertEqual(current_firing_view({}), {"geometry_available": False, "directions": {}})
+
     def test_saved_corner_has_blocked_left_lane_and_clear_down_alignment(self):
         saved = json.loads((Path(__file__).parent / "fixtures/combat-corner.json").read_text())
         result = build_combat_context(saved)

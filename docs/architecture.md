@@ -29,6 +29,17 @@ current position; potential future firing positions are labeled separately.
 Jev is told that movement momentum can bend tears across the firing axis.
 Actual tear-velocity inheritance has not been calibrated.
 
+Combat firing also receives a compact `firing_now` view for each button: enemies
+on that side, enemies aligned with the current straight firing lane, and aligned
+enemies without observed solid-grid blockers. It summarizes current geometry,
+does not rank directions, and does not use previous inputs or future waypoints.
+Incomplete grid clearance is unknown, not an empty list of obstacles. These
+ordinary-tear estimates do not guarantee hits with momentum, range limits,
+moving enemies or special weapons. Previous controls are explicitly history.
+Bounded decision reports retain the validated firing probability distribution
+and current geometry at both request and reply time. This separates repeated
+model choices from changes during response latency; it does not override aim.
+
 The local loop runs much more frequently than model decisions. Immediate dodges
 can override movement and are logged. Local execution preserves the selected
 cardinal firing button. A blocked selected activity returns to Jev rather than

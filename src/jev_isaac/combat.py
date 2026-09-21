@@ -126,7 +126,8 @@ def build_combat_context(state, *, target_limit=8):
     enemies = []
     raw_enemies = state.get("enemies", [])
     for offset, enemy in enumerate(raw_enemies[:64] if isinstance(raw_enemies, list) else []):
-        if not isinstance(enemy, Mapping) or enemy.get("vulnerable") is not True:
+        if (not isinstance(enemy, Mapping) or enemy.get("vulnerable") is not True
+                or enemy.get("dead") is True):
             continue
         pos, hp = _point(enemy), enemy.get("hp")
         if pos is None or not _number(hp) or hp <= 0:
@@ -175,3 +176,30 @@ def build_combat_context(state, *, target_limit=8):
             "assumptions": "Conservative grounded movement; ordinary straight tears; range unknown. Grid-only estimates exclude moving threats.",
             "move_probe_distance": _PROBE, "moves": moves, "targets": targets,
             "firing_positions": waypoints[:4]}
+
+
+def current_firing_view(context):
+    """Group current enemy lanes by button, without ranking or choosing one.
+
+    Future waypoints and previous controls cannot contribute to this view.
+    Empty clear-lane lists are meaningful only with complete grid geometry.
+    These are straight-line estimates, not predictions of weapon hits.
+    """
+    if not context:
+        return {"geometry_available": False, "directions": {}}
+    complete = context["grid_complete"]
+    directions = {direction: {"enemies_on_side": [], "aligned_enemies": [],
+                              "grid_clear_aligned_enemies": [] if complete else None}
+                  for direction in ("left", "right", "up", "down")}
+    for target in context["targets"]:
+        for lane in target["lanes"].values():
+            row = directions.get(lane["direction"])
+            if row is None:
+                continue
+            row["enemies_on_side"].append(target["id"])
+            if lane["aligned"]:
+                row["aligned_enemies"].append(target["id"])
+                if complete and not lane["blockers"]:
+                    row["grid_clear_aligned_enemies"].append(target["id"])
+    return {"geometry_available": True, "grid_complete": complete,
+            "directions": directions}

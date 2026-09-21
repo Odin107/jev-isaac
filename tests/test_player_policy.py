@@ -40,6 +40,38 @@ def call(data, choices, mutate=None):
 
 
 class PlayerPolicyTests(unittest.TestCase):
+    def test_current_aim_is_fresh_even_when_previous_input_points_west(self):
+        data = state([enemy("east", x=180, y=160)])
+        data["control"] = {"shoot": "left"}
+        decision, request = call(data, {"goal": "hold", "fire": "left"})
+        view = request["state"]["firing_now"]["directions"]
+        self.assertEqual(view["right"]["grid_clear_aligned_enemies"], ["east"])
+        self.assertEqual(view["left"]["enemies_on_side"], [])
+        # Factual hints do not silently replace an unhelpful model choice.
+        self.assertEqual(decision.fire_direction, "left")
+        self.assertEqual(decision.fire_judgment["probabilities"]["left"], 1.)
+        data["enemies"][0].update(x=50)
+        _, request = call(data, {"goal": "hold", "fire": "right"})
+        view = request["state"]["firing_now"]["directions"]
+        self.assertEqual(view["left"]["grid_clear_aligned_enemies"], ["east"])
+        self.assertEqual(view["right"]["enemies_on_side"], [])
+
+    def test_fire_distribution_is_preserved_including_reported_choice_correction(self):
+        def change(answer):
+            answer["answers"]["fire"].update(choice="left", confidence=.25,
+                probabilities={"none": .05, "left": .1, "right": .65, "up": .15, "down": .05})
+        for activities in (False, True):
+            with self.subTest(activities=activities):
+                data = state()
+                if activities:
+                    data["room"]["clear"] = True
+                    data["_adventure_options"] = [choice("collect:1")]
+                decision, _ = call(data, {"goal": "hold", "activity": "wait", "fire": "left"}, change)
+                self.assertEqual(decision.fire_direction, "right")
+                self.assertEqual(decision.fire_judgment, {"reported_choice": "left", "confidence": .25,
+                    "probabilities": {"none": .05, "left": .1, "right": .65, "up": .15, "down": .05}})
+                self.assertEqual(decision.choice_corrections[0]["question"], "fire")
+
     def test_hold_and_fire_are_independent_explicit_model_choices(self):
         decision, request = call(state(), {"goal": "hold", "fire": "right"})
         self.assertEqual((decision.kind, decision.fire_direction), ("hold", "right"))

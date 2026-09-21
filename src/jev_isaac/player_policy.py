@@ -6,13 +6,14 @@ from .goals import GoalClient, GoalDecision, build_goal_request, _candidates
 from .jev import MAX_RESPONSE_BYTES, JevResponseError, _parse_choice, _unique_object, _GRID_COORDINATES
 from .state_context import CONTEXT_INSTRUCTIONS
 from .strategy import StrategyDecision, _options
-from .combat import build_combat_context
+from .combat import build_combat_context, current_firing_view
 
 
 @dataclass(frozen=True)
 class PlayerGoalDecision(GoalDecision):
     fire_direction: str = "none"
     ability_key: str | None = None
+    fire_judgment: dict | None = None
 
     def __post_init__(self):
         super().__post_init__()
@@ -23,6 +24,7 @@ class PlayerGoalDecision(GoalDecision):
 @dataclass(frozen=True)
 class PlayerActivityDecision(StrategyDecision):
     fire_direction: str = "none"
+    fire_judgment: dict | None = None
 
     def __post_init__(self):
         if self.fire_direction not in ("none", "left", "right", "up", "down"):
@@ -98,6 +100,7 @@ class PlayerClient(GoalClient):
         else:
             targets = _candidates(clean, limit=64)
             payload["state"]["combat_context"] = build_combat_context(clean, target_limit=64)
+            payload["state"]["firing_now"] = current_firing_view(payload["state"]["combat_context"])
             bindings = {v["option"]: v["id"] for v in targets}
             payload["state"]["goal_candidates"] = targets
             payload["questions"] = {
@@ -113,24 +116,21 @@ class PlayerClient(GoalClient):
                                  **{o: f"Engage observed enemy {ident}; seek alignment with that target."
                                     for o, ident in bindings.items()}}},
                 "fire": {"type": "choice", "instructions": (
-                    "Choose the firing button direction right now. You own aiming; local code will "
-                    "not substitute a target or direction. You may fire while moving, holding or evading. "
-                    "The input applies from the CURRENT player position. "
-                    "In combat_context.targets, dx/dy are enemy minus player; positive dx means right, "
-                    "negative dx left, positive dy down, negative dy up. Each target has horizontal "
-                    "and vertical lanes with direction, perpendicular offset, alignment and blockers. "
-                    "A lane's direction describes an enemy's side, not a guaranteed hit. "
-                    "combat_context.firing_positions are hypothetical future positions, NOT shots "
-                    "available from where you stand now; their shoot field is relative to that future position. "
-                    "Player momentum affects tear trajectory: moving across the firing axis can make "
-                    "shots travel diagonally. observation.player.vx/vy records current player velocity. "
-                    "Releasing movement input "
-                    "does not instantly stop momentum. ShotSpeed is not a measured world-velocity or "
-                    "momentum multiplier; exact inheritance is uncalibrated. Emergency dodging can "
-                    "change player motion between replies. These "
-                    "questions are answered independently: use observed velocity and applied control, "
-                    "not an assumed answer to the movement question. Choose none "
-                    "to withhold fire. Coordinates: x right, y down."),
+                    "Choose your firing input now to play toward completing the run. You own aiming. "
+                    "`firing_now.directions` groups living vulnerable enemies by direction from the CURRENT "
+                    "player position: enemies_on_side need not be aligned; aligned_enemies cross that straight "
+                    "firing lane; grid_clear_aligned_enemies also have no observed solid-grid blocker. "
+                    "Null means unknown. These are geometry facts, not guaranteed hits or required choices. "
+                    "`combat_context.targets` gives distances and offsets; `observation` includes weapon, "
+                    "objects and threats. Shots can trigger explosives. "
+                    "Past `observation.control` and controller memory describe previous inputs, not a request "
+                    "to repeat them. `combat_context.firing_positions` are hypothetical future positions; their shoot "
+                    "directions do not describe shots from here. "
+                    "You can shoot while moving, holding or evading. The movement answer is independent and "
+                    "unknown to this question. Use observed player vx/vy: momentum can deflect tears diagonally "
+                    "and persists after movement release; exact inheritance is uncalibrated. "
+                    "Equal consecutive directions hold the button; none releases it, including for charge/release "
+                    "weapons. Local code preserves your fire choice. Coordinates: x right, y down."),
                     "criteria": {"none": "Do not shoot.",
                                  "left": "Press LEFT: firing input toward smaller x, to the LEFT of the player. Momentum can deflect tears.",
                                  "right": "Press RIGHT: firing input toward larger x, to the RIGHT of the player. Momentum can deflect tears.",
@@ -165,14 +165,17 @@ class PlayerClient(GoalClient):
                 raise ValueError()
             if any(type(usage.get(k)) is not int or usage[k] < 0 for k in ("input_tokens", "output_tokens")):
                 raise ValueError()
-            choices, corrections = {}, []
+            choices, corrections, fire_judgment = {}, [], None
             for key, question in payload["questions"].items():
                 answer = decoded["answers"][key]
                 if not isinstance(answer, dict) or set(answer) != {"type", "choice", "confidence", "probabilities"}:
                     raise ValueError()
-                chosen, _, _, correction = _parse_choice(answer, tuple(question["criteria"]), key,
+                chosen, confidence, probabilities, correction = _parse_choice(answer, tuple(question["criteria"]), key,
                                                          self.provider, self.choice_policy)
                 choices[key] = chosen
+                if key == "fire":
+                    fire_judgment = {"reported_choice": answer["choice"],
+                                     "confidence": confidence, "probabilities": probabilities}
                 if correction:
                     corrections.append(correction)
         except (ValueError, TypeError, UnicodeError, RecursionError, KeyError):
@@ -181,8 +184,10 @@ class PlayerClient(GoalClient):
         if offered:
             target = "continue" if offered[0]["kind"] == "continue" else bindings.get(choices["activity"])
             return PlayerActivityDecision("adventure", target, elapsed,
-                                          model, usage, tuple(corrections), choices.get("fire", "none"))
+                                          model, usage, tuple(corrections), choices.get("fire", "none"),
+                                          fire_judgment=fire_judgment)
         choice = choices["goal"]
         return PlayerGoalDecision("engage" if choice in bindings else choice, bindings.get(choice),
                                   elapsed, model, usage, tuple(corrections),
-                                  choices["fire"], ability_bindings.get(choices.get("ability")))
+                                  choices["fire"], ability_bindings.get(choices.get("ability")),
+                                  fire_judgment=fire_judgment)

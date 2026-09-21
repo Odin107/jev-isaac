@@ -148,6 +148,11 @@ class PlayerControllerTests(unittest.TestCase):
         self.assertFalse(any(packet["shoot"] in ("left", "right", "down") for _, packet, _ in transport.sent))
         self.assertEqual(requests[0]["state"]["game_context"]["shooting_motion"]["player_velocity"]["vx"], 1.5)
         self.assertTrue(result["jev_player"])
+        decision = result["player_decisions"][0]
+        self.assertEqual(decision["fire_judgment"]["reported_choice"], "up")
+        self.assertEqual(decision["fire_judgment"]["probabilities"]["up"], 1.)
+        for moment in ("aim_at_request", "aim_at_reply"):
+            self.assertIn("right", decision[moment]["firing_now"]["directions"])
 
     def test_startup_waits_for_jev_before_shooting(self):
         data = combat()
@@ -166,6 +171,7 @@ class PlayerControllerTests(unittest.TestCase):
         self.assertTrue(all((p["move"], p["shoot"]) == ("none", "none") for _, p, _ in transport.sent))
         self.assertEqual(result["pickup_progress"]["attempts"], 0)
         self.assertEqual(result["player_decisions"][0]["selected"], "wait")
+        self.assertEqual(result["player_decisions"][0]["fire_judgment"]["probabilities"]["none"], 1.)
 
     def test_boss_door_choice_beats_old_local_room_order(self):
         data = ready()

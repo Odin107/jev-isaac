@@ -799,6 +799,7 @@ class Controller:
                                             if self.jev_player:
                                                 self.stats.player_decisions.append({"frame": source.frame, "kind": "activity",
                                                     "selected": action.target_id or "wait", "fire": action.fire_direction,
+                                                    "fire_judgment": action.fire_judgment,
                                                     "accepted": bool(bound and accepted)})
                                                 del self.stats.player_decisions[:-80]
                                                 self.log(f"Jev chose activity: {action.target_id or 'wait'} ({'accepted' if bound and accepted else 'state changed; discarded'}).")
@@ -816,16 +817,19 @@ class Controller:
                                             if self.stats.first_goal_ms is None:
                                                 self.stats.first_goal_ms = round((now-armed_at)*1000, 1)
                                             if self.jev_player:
-                                                from .combat import build_combat_context
+                                                from .combat import build_combat_context, current_firing_view
                                                 def aim_audit(observed):
-                                                    rows = build_combat_context(observed, target_limit=64).get("targets", [])
+                                                    context = build_combat_context(observed, target_limit=64)
+                                                    rows = context.get("targets", [])
                                                     return {"frame": observed["frame"],
+                                                        "firing_now": current_firing_view(context),
                                                         "movement_target": next((r for r in rows if r["id"] == action.target_id), None),
                                                         "aligned_with_chosen_fire": [r["id"] for r in rows if any(
                                                             lane["direction"] == action.fire_direction and lane["aligned"] and not lane["blockers"]
                                                             for lane in r["lanes"].values())]}
                                                 self.stats.player_decisions.append({"frame": source.frame, "kind": action.kind,
                                                     "target_id": action.target_id, "fire": action.fire_direction,
+                                                    "fire_judgment": action.fire_judgment,
                                                     "reply_age_ms": round(elapsed*1000, 1),
                                                     "aim_at_request": aim_audit(source.data), "aim_at_reply": aim_audit(latest.data)})
                                                 del self.stats.player_decisions[:-80]
