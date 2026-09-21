@@ -166,13 +166,59 @@ def _ordinary_bombs(state):
                         for item in state["hazards"]))
 
 
+def _bomb_placement(parsed, rock, geometry):
+    """Find a reachable placement and straight outward retreat for one bomb."""
+    start, radius, bounds = parsed[3], parsed[4], parsed[6]
+    center, boxes = _point(rock), geometry[0]
+    stand_off = _radius(rock, 20) + radius + 10
+    if stand_off >= BLAST_RADIUS - 20:
+        return None
+    for dx, dy in sorted(_DOOR_DIRECTIONS, key=lambda vector:
+                         math.dist(start, (center[0]+vector[0]*stand_off, center[1]+vector[1]*stand_off))):
+        point = center[0]+dx*stand_off, center[1]+dy*stand_off
+        if not _reachable(start, point, bounds, geometry):
+            continue
+        retreat_distance = BLAST_RADIUS + radius + BLAST_MARGIN + 20
+        escape = point[0]+dx*retreat_distance, point[1]+dy*retreat_distance
+        if (_inside(escape, bounds) and _free(escape, boxes)
+                and _clear(point, escape, boxes)):
+            return point, escape, retreat_distance
+    return None
+
+
+def _rock_bomb_options(state, parsed, limit):
+    """Offer observed ordinary/tinted rocks without requiring a known pickup."""
+    if limit <= 0 or not _ordinary_bombs(state):
+        return []
+    geometry = _geometry(state, parsed[4])
+    rocks = [rock for rock in state["hazards"] if rock.get("kind") == "grid"
+             and rock.get("type") in (2, 4) and rock.get("collision") == 3]
+    rocks.sort(key=lambda rock: (math.dist(parsed[3], _point(rock)), _grid_id(rock)))
+    result = []
+    for rock in rocks:
+        placement = _bomb_placement(parsed, rock, geometry)
+        if placement is None:
+            continue
+        point, escape, distance = placement
+        rock_id = _grid_id(rock)
+        reason = ("tinted rock for possible supplies or an item; its actual contents are unknown"
+                  if rock["type"] == 4 else "ordinary rock to remove the obstacle; any drop is unknown")
+        result.append(AdventureCandidate(f"bomb_rock:{rock_id}", "bomb_rock", rock_id,
+            point, {"bombs": 1}, f"Spend one bomb on this observed {reason}. Retreat, then choose again",
+            interaction="bomb", escape_point=escape, rock_id=rock_id, context=_context(state),
+            details={"purpose": "destroy_rock", "rock_type": rock["type"], "rock_point": _point(rock),
+                     "blast_radius": BLAST_RADIUS, "escape_distance": distance}))
+        if len(result) >= limit:
+            break
+    return result
+
+
 def _bomb_option(state, parsed, item, option):
     if not _ordinary_bombs(state):
         return None
     _, _, _, start, radius, _, bounds, _ = parsed
     sig, target = signature(item), _point(item)
     geometry = _geometry(state, radius, target=sig)
-    boxes = geometry[0]
     if _reachable(start, target, bounds, geometry):
         return None  # Never spend a bomb when a walking route exists.
     rocks = [rock for rock in state["hazards"] if rock.get("kind") == "grid"
@@ -183,19 +229,9 @@ def _bomb_option(state, parsed, item, option):
         after = _geometry(state, radius, target=sig, remove_grid=rock_id)
         if not _reachable(start, target, bounds, after):
             continue
-        stand_off = _radius(rock, 20) + radius + 10
-        for dx, dy in sorted(_DOOR_DIRECTIONS, key=lambda vector:
-                             math.dist(start, (center[0] + vector[0]*stand_off, center[1] + vector[1]*stand_off))):
-            point = center[0]+dx*stand_off, center[1]+dy*stand_off
-            if not _reachable(start, point, bounds, geometry):
-                continue
-            retreat_distance = BLAST_RADIUS + radius + BLAST_MARGIN + 20
-            escape = point[0]+dx*retreat_distance, point[1]+dy*retreat_distance
-            # A straight outward route makes time-to-safety bounded; a long
-            # maze path being reachable would not prove the bomb fuse is safe.
-            if (not _inside(escape, bounds) or not _free(escape, boxes)
-                    or not _clear(point, escape, boxes)):
-                continue
+        placement = _bomb_placement(parsed, rock, geometry)
+        if placement is not None:
+            point, escape, retreat_distance = placement
             kind, reserved, description = option
             cost = dict(reserved, bombs=1)
             return AdventureCandidate(f"bomb:{rock_id}:{item['id']}", "bomb_rock", item["id"],
@@ -287,7 +323,8 @@ def _pocket_choices(state):
                        "description": player.get("pocket_description", "")})]
 
 
-def candidates(state, *, rewards_done=False, allow_descend=False, limit=MAX_CANDIDATES):
+def candidates(state, *, rewards_done=False, allow_descend=False, limit=MAX_CANDIDATES,
+               include_rock_targets=False):
     """Return up to eight currently eligible, context-bound model choices."""
     parsed = _parsed(state)
     if parsed is None:
@@ -353,6 +390,8 @@ def candidates(state, *, rewards_done=False, allow_descend=False, limit=MAX_CAND
                 result.append(AdventureCandidate(f"descend:{target}", "descend", target, _point(grid), {},
                     "Enter the observed floor exit and leave this floor", context=_context(state),
                     details={"grid_type": grid["type"]}))
+    if include_rock_targets:
+        result.extend(_rock_bomb_options(state, parsed, limit-len(result)))
     return tuple(result[:limit])
 
 
@@ -396,6 +435,24 @@ def candidate_valid(state, candidate, *, rewards_done=False, allow_descend=False
                    and option.details.get("pedestals") == candidate.details.get("pedestals") for option in options)
     if not room["clear"] or not player["can_pickup_items"]:
         return False
+    if candidate.kind == "bomb_rock" and candidate.details.get("purpose") == "destroy_rock":
+        if (not _ordinary_bombs(state) or candidate.cost != {"bombs": 1}
+                or candidate.pickup_signature is not None or candidate.point is None
+                or candidate.escape_point is None or candidate.target_id != candidate.rock_id):
+            return False
+        rock = next((h for h in state["hazards"] if h.get("kind") == "grid"
+                     and h.get("type") in (2, 4) and h.get("collision") == 3
+                     and _grid_id(h) == candidate.rock_id), None)
+        if (rock is None or rock["type"] != candidate.details.get("rock_type")
+                or _point(rock) != tuple(candidate.details.get("rock_point", ()))):
+            return False
+        geometry = _geometry(state, radius)
+        boxes = geometry[0]
+        return (math.dist(candidate.point, _point(rock)) < BLAST_RADIUS-20
+                and _reachable(start, candidate.point, bounds, geometry)
+                and _inside(candidate.escape_point, bounds) and _free(candidate.escape_point, boxes)
+                and math.dist(candidate.point, candidate.escape_point) >= BLAST_RADIUS+radius+BLAST_MARGIN
+                and _clear(candidate.point, candidate.escape_point, boxes))
     if candidate.kind in ("collect", "open_chest", "buy", "bomb_rock"):
         item = next((item for item in state["pickups"] if signature(item) == candidate.pickup_signature), None)
         if item is None:

@@ -143,7 +143,8 @@ class PlayerNavigator(FloorNavigator):
         if state["room"]["clear"]:
             from .room_inputs import room_input_candidates
             choices.extend(room_input_candidates(state, parsed))
-            choices.extend(candidates(state, rewards_done=True, allow_descend=self._allow_descend, limit=160))
+            choices.extend(candidates(state, rewards_done=True, allow_descend=self._allow_descend,
+                                      limit=160, include_rock_targets=True))
             for door in parsed[-1]:
                 destination = self._aliases.get(door.target_index)
                 known = self._rooms.get(destination)

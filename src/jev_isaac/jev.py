@@ -301,11 +301,11 @@ class _PersistentHTTPTransport:
         self._endpoint = endpoint
         self._url = urlsplit(endpoint)
         self._connection: HTTPSConnection | None = None
-        self._warmed_at: float | None = None
+        self._idle_since: float | None = None
 
     def close(self) -> None:
         connection, self._connection = self._connection, None
-        self._warmed_at = None
+        self._idle_since = None
         if connection is not None:
             connection.close()
 
@@ -324,12 +324,12 @@ class _PersistentHTTPTransport:
                     context=ssl.create_default_context(),
                 )
                 self._connection.connect()
-                self._warmed_at = time.monotonic()
+                self._idle_since = time.monotonic()
             else:
                 self._connection.timeout = timeout
                 if self._connection.sock is None:
                     self._connection.connect()
-                    self._warmed_at = time.monotonic()
+                    self._idle_since = time.monotonic()
                 else:
                     self._connection.sock.settimeout(timeout)
         except Exception:
@@ -341,13 +341,13 @@ class _PersistentHTTPTransport:
         if request.full_url != self._endpoint or request.get_method() != "POST":
             raise ValueError("Transport requires a POST to its configured endpoint.")
         try:
-            # The user may wait before F8. Do not send the first POST down a
-            # prepared socket that has spent a long time idle. This reconnects
-            # before any request bytes are sent; it never retries a POST.
-            if self._warmed_at is not None:
-                if time.monotonic()-self._warmed_at > 5.0:
+            # F8 waits, pauses and floor transitions can leave an established
+            # socket idle too. Reconnect before sending new request bytes;
+            # never replay a POST whose delivery may already have succeeded.
+            if self._idle_since is not None:
+                if time.monotonic()-self._idle_since > 5.0:
                     self.close()
-                self._warmed_at = None
+                self._idle_since = None
             if self._connection is None:
                 self._connection = HTTPSConnection(
                     self._url.hostname, port=self._url.port, timeout=timeout,
@@ -378,6 +378,8 @@ class _PersistentHTTPTransport:
                     raise IncompleteRead(b"")
                 elif response.will_close:
                     self.close()
+                if self._connection is not None:
+                    self._idle_since = time.monotonic()
                 return HttpResponse(response.status, body, headers)
         except Exception:
             # Reset state on any transport failure; no request is retried.

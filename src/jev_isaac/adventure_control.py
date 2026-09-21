@@ -237,7 +237,7 @@ class AdventureControl:
                 still_rock = any(h.get("kind") == "grid" and _grid_id(h) == plan.rock_id
                                  and h.get("collision") == 3 for h in state["hazards"])
                 if not still_rock and not any(h.get("kind") == "bomb" for h in state["hazards"]):
-                    return self._finish(state, success=True, reason="rock route opened; rechecking rewards")
+                    return self._finish(state, success=True, reason="selected rock destroyed; rechecking routes and rewards")
                 return InteractionAction(status="waiting outside bomb range")
             move = self._move(state, plan.point)
         else:

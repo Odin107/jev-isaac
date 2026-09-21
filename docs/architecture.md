@@ -17,6 +17,21 @@ pressure plates and observed floor connections. The controller adds relative
 combat geometry, visited-room memory, recent outcomes and remaining budgets.
 Missing information is not meant to imply an empty or safe room.
 
+Floor memory explicitly tracks item rooms as not observed, found but unvisited,
+or visited. Observed locked entrances count as found, without becoming traversable
+edges. Large-room aliases are kept together; multiple item rooms remain separate.
+The accompanying rules explain their value as sources of run-long upgrades and
+their usual key cost, without forcing an exploration order or claiming every
+floor contains one. Visiting a room does not prove its item was taken.
+
+Pickups left in directly observed rooms are remembered by room, type/subtype,
+count and shop price; heart types have readable labels. These are last-seen
+facts, not live offscreen observations. A complete new room observation replaces
+its snapshot, removing collected/disappeared supplies and empty pedestals.
+Missing pickup data or an imported visited-room summary cannot erase or invent
+supplies. Both memories survive authenticated same-floor rearming and reset for
+a new floor/run. They do not create routes, collection or spending authority.
+
 `player_policy.py` builds typed choices for combat and room activities.
 `player_navigation.py` executes selected activities through the movement and
 interaction helpers. `controller.py` coordinates fresh observations, asynchronous
@@ -59,6 +74,24 @@ a hit or assuming ordinary-tear physics. Weapon changes invalidate a previous
 firing choice. Charge/release mechanics and synergies are not fully modeled.
 Object-specific actions remain useful shortcuts, but their narrower weapon
 support no longer removes all firing choices in cleared rooms.
+
+The HTTP connection is refreshed before a new request after more than five
+seconds idle, including pauses and floor transitions. Failed requests are never
+replayed. With `--stay-ready`, connection failures/timeouts release control and
+keep the listener and in-memory key open for a fresh same-run/floor F8 session.
+The next decision uses fresh state; waiting and recovery retain the original
+deadline and request cap. This does not automatically retry HTTP billing/auth
+errors or unrelated programming failures.
+
+In player mode, observed ordinary and tinted rocks can also be offered as
+standalone `bomb_rock` activities in cleared rooms. A visible reward behind the
+rock is no longer required. Jev receives the bomb cost and general purpose;
+unexposed drops remain unknown. The executor checks ordinary-bomb inventory,
+the exact rock, a placement route and a straight retreat, then places one bomb
+and waits outside its range for observed destruction. New drops or openings
+require another Jev decision. The existing bomb-to-pickup plan remains available.
+Walls, pits, special rocks, modified bombs and explosive chains are outside this
+bounded planner; absent offers do not imply the game mechanic is impossible.
 
 After combat, a stationary ordinary/red fire can leave Isaac within its extra
 navigation buffer. A bounded outward step may leave that buffer while retaining

@@ -25,12 +25,23 @@ run completion is still unproven. See [the milestone](docs/first-boss.md).
 | Which supplies, items or purchases to take | Eligibility checks and the selected interaction |
 | Whether to try an unidentified pill | A bounded use of that pill, without revealing its effect first |
 | Which pressure plate or TNT target to use | Movement, short shooting actions and explosive retreat |
+| Whether to bomb an observed ordinary or tinted rock | One bomb at a checked placement, retreat and observation of the result |
 | Whether to take a supported floor exit | The selected transition |
 
 Emergency dodging can override movement. It does not replace Jev's chosen firing
 direction. Waiting does not automatically pick a room, collect supplies or fire.
 Unsupported mechanics are still filtered locally; not every skipped action is a
 deliberate Jev decision. See [architecture and limits](docs/architecture.md).
+
+Jev receives item-room discovery/visit status and remembers pickups left in
+visited rooms, including heart types and shop prices. It can weigh returning
+for supplies or searching for an item room. Remembered contents are checked
+again on revisiting; unseen rooms and tinted-rock drops remain unknown.
+
+With `--stay-ready`, a connection failure releases control while keeping the
+controller and key open. Press **F8** to retry from fresh state within the same
+remaining time/request limits. Pauses also refresh idle connections before the
+next request.
 
 ## Requirements
 

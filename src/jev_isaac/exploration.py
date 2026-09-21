@@ -6,7 +6,7 @@ layout. Shops, deals, damage doors, locks and floor exits are never goals.
 """
 from __future__ import annotations
 
-from collections import deque
+from collections import Counter, deque
 from collections.abc import Mapping
 import copy
 from dataclasses import dataclass
@@ -472,6 +472,8 @@ class FloorNavigator:
         self._rooms = {}
         self._aliases = {}
         self._graph = {}
+        self._treasure_entrances = {}
+        self._room_pickups = {}
         self._observed = set()
         self._inspected = set()
         self._pending = None
@@ -534,6 +536,8 @@ class FloorNavigator:
         fresh._rooms = dict(self._rooms)
         fresh._aliases = dict(self._aliases)
         fresh._graph = dict(self._graph)
+        fresh._treasure_entrances = copy.deepcopy(self._treasure_entrances)
+        fresh._room_pickups = copy.deepcopy(self._room_pickups)
         fresh._observed = set(self._observed)
         fresh._inspected = set(self._inspected)
         fresh._doors_traversed = self._doors_traversed
@@ -595,6 +599,11 @@ class FloorNavigator:
         plan = self._adventure.plan if self._adventure is not None else None
         events = self._adventure.events[-3:] if self._adventure is not None else []
         return {"current_room_key": room_key(self._current), "progress": self.stats,
+                "item_rooms": self._item_room_context(),
+                "remembered_pickups": [dict(copy.deepcopy(value), room_key=room_key(key),
+                    room_indices=sorted(i for i, target in self._aliases.items() if target == key))
+                    for key, value in sorted(self._room_pickups.items()) if value["groups"]],
+                "pickup_memory_scope": "Pickups last seen in directly observed rooms on this floor. Offscreen contents may change; refresh on revisiting. Empty/visited-room summaries do not reveal unobserved pickups. Memory does not grant collection or prove a route.",
                 "map_columns": ["room_key", "grid_aliases", "room_type", "clear_last_observed",
                                 "doors_inspected", "remembered_permitted_doors_slot_target_type"],
                 "map_rows": rooms,
@@ -604,6 +613,37 @@ class FloorNavigator:
                                 if plan is not None else None),
                 "recent_interaction_outcomes": [{"frame": e["frame"], "event": e["event"],
                     "candidate_key": e["candidate"]["key"], "reason": e["reason"]} for e in events]}
+
+    def _item_room_context(self):
+        """Distinguish seen entrances from actual visits, using this floor only."""
+        rooms = {}
+        def add(key, visited):
+            if key not in rooms:
+                rooms[key] = {"room_key": f"{key[0]}:{key[1]}", "visited": visited,
+                    "room_indices": sorted(i for i, target in self._aliases.items() if target == key),
+                    "observed_entrances": []}
+            return rooms[key]
+        for key, (kind, _) in sorted(self._rooms.items()):
+            if kind == 4:
+                add(key, True)
+        for entrance in self._treasure_entrances.values():
+            index = entrance["target_index"]
+            key = self._aliases.get(index, ("unvisited", index))
+            known = self._rooms.get(key)
+            if known is not None and known[0] != 4:
+                continue  # Current authenticated room type supersedes an old door appearance.
+            row = add(key, known is not None)
+            if index not in row["room_indices"]:
+                row["room_indices"].append(index)
+                row["room_indices"].sort()
+            row["observed_entrances"].append(dict(entrance))
+        rows = [rooms[key] for key in sorted(rooms)]
+        visited = sum(row["visited"] for row in rows)
+        unvisited = len(rows)-visited
+        return {"status": "found_unvisited" if unvisited else "visited" if visited else "not_observed",
+                "found": bool(rows), "visited_count": visited, "known_unvisited_count": unvisited,
+                "rooms": rows,
+                "scope": "Current-floor observed doors and game-reported visits only. Not observed does not mean absent. Remembered locks/routes may change; visiting does not prove an item was collected."}
 
     @property
     def pickup_stats(self):
@@ -738,6 +778,27 @@ class FloorNavigator:
         self._aliases[index] = key
         self._rooms[key] = room["type"], room["clear"]
         self._observed.add(key)
+        from .state_context import PICKUP_TYPES, HEART_TYPES
+        # Replacing a complete room snapshot removes collected/disappeared
+        # pickups. Summaries imported for other rooms cannot erase this memory.
+        if isinstance(state.get("pickups"), list) and valid_pickups(state):
+            counts = Counter((p["variant"], p["subtype"], p["price"], p["shop_item"])
+                             for p in state["pickups"]
+                             if not (p["variant"] in (50, 60, 100) and p["subtype"] == 0))
+            self._room_pickups[key] = {"last_observed_frame": state["frame"],
+                "groups": [{"kind": PICKUP_TYPES.get(variant, "unknown"), "variant": variant,
+                            "subtype": subtype, "price": price, "shop_item": shop_item, "count": count}
+                           | ({"heart_type": HEART_TYPES.get(subtype, "unknown")} if variant == 10 else {})
+                           for (variant, subtype, price, shop_item), count in sorted(counts.items())]}
+        # Appearance can reveal an item-room entrance even while locked or
+        # temporarily closed by combat. This records knowledge, never a route.
+        for door in state["doors"]:
+            if (door["target_type"] == 4 and 0 <= door["target_index"] <= 168
+                    and door["target_index"] != index):
+                self._treasure_entrances[(key, door["slot"])] = {
+                    "from_room_index": index, "slot": door["slot"], "target_index": door["target_index"],
+                    "locked_last_observed": door["locked"], "open_last_observed": door["open"],
+                    "last_observed_frame": state["frame"]}
         if room["type"] == 10:
             self._curse_attempted.update(alias for alias, target in self._aliases.items() if target == key)
         elif changed_room:

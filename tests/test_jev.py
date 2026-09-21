@@ -99,21 +99,39 @@ class PersistentTransportTests(unittest.TestCase):
 
     def test_idle_unused_warm_socket_is_discarded_before_first_post(self):
         with patch("jev_isaac.jev.HTTPSConnection") as constructor, \
-             patch("jev_isaac.jev.time.monotonic", side_effect=[10.0, 15.1]):
+             patch("jev_isaac.jev.time.monotonic", side_effect=[10.0, 15.1, 15.2, 15.3, 15.4]):
             warmed, used = Mock(), Mock()
             constructor.side_effect = [warmed, used]
             used.getresponse.side_effect = [wire_response(), wire_response()]
             client = JevClient("offline-key")
             client.warm_connect()
             client.decide({"frame": 1})
-            # Idle expiration applies only to an unused prepared connection;
-            # normal sequential POST calls keep their existing reuse policy.
+            # A nearby next request still reuses the established connection.
             client.decide({"frame": 2})
             self.assertEqual(constructor.call_count, 2)
             warmed.connect.assert_called_once_with()
             warmed.request.assert_not_called()
             warmed.close.assert_called_once_with()
             self.assertEqual(used.request.call_count, 2)
+            client.close()
+
+    def test_used_connection_is_replaced_after_pause_before_sending_new_post(self):
+        with patch("jev_isaac.jev.HTTPSConnection") as constructor, \
+             patch("jev_isaac.jev.time.monotonic", side_effect=[10., 10.5, 10.6, 30., 30.2]):
+            first, second = Mock(), Mock()
+            constructor.side_effect = [first, second]
+            first.getresponse.side_effect = [wire_response(), wire_response()]
+            second.getresponse.return_value = wire_response()
+            client = JevClient("offline-key")
+            client.decide({"frame": 1})
+            client.decide({"frame": 2})
+            self.assertEqual(constructor.call_count, 1)
+            client.decide({"frame": 3})
+            self.assertEqual(constructor.call_count, 2)
+            self.assertEqual(first.request.call_count, 2)
+            second.request.assert_called_once()
+            first.close.assert_called_once()
+            self.assertEqual(json.loads(second.request.call_args.kwargs["body"])["state"]["frame"], 3)
             client.close()
 
     def test_warm_elapsed_timeout_closes_connection_without_sending_request(self):

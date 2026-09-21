@@ -169,6 +169,8 @@ class Stats:
     floors_advanced: int = 0
     navigation_stops: int = 0
     navigation_rearms: int = 0
+    connection_stops: int = 0
+    connection_rearms: int = 0
     last_navigation_stop: dict | None = None
     navigation_stop_snapshots: list[dict] = field(default_factory=list)
     actions_sent: int = 0
@@ -349,7 +351,7 @@ class Controller:
         self.bound_port = None
 
     def run(self, ready=None) -> dict:
-        from .jev import JevResponseError
+        from .jev import JevResponseError, JevTransportError
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.bind(("127.0.0.1", self.port))
             sock.settimeout(_RECEIVE_TIMEOUT)
@@ -391,6 +393,7 @@ class Controller:
             ability_state = None
             floor_history = []
             navigation_recovery = None
+            recovery_kind = "navigation"
             manual_recovery = None
             pending_observations = deque()
             drain_incomplete = False
@@ -432,27 +435,32 @@ class Controller:
                     explorer.cancel_intent()
                 objective_status = None
 
-            def recover_navigation(reason):
-                nonlocal navigation_recovery
-                recoverable = self.stay_ready and reason in _RECOVERABLE_NAVIGATION_STOPS
+            def recover_navigation(reason, *, service_failure=False):
+                nonlocal navigation_recovery, recovery_kind
+                recoverable = self.stay_ready and (service_failure or reason in _RECOVERABLE_NAVIGATION_STOPS)
                 capture_navigation_stop(reason, recoverable=recoverable)
                 if not recoverable:
                     return False
                 navigation_recovery = _NavigationRecovery(floor_run, floor_id,
                                                           frozenset(seen_sessions), latest.frame)
+                recovery_kind = "connection" if service_failure else "navigation"
                 reset_control_epoch()
-                self.stats.navigation_stops += 1
-                self.stats.last_navigation_stop = {"reason": reason, "frame": latest.frame,
-                                                   "room_id": latest.identity[1]}
+                if service_failure:
+                    self.stats.connection_stops += 1
+                else:
+                    self.stats.navigation_stops += 1
+                    self.stats.last_navigation_stop = {"reason": reason, "frame": latest.frame,
+                                                       "room_id": latest.identity[1]}
                 # Release once. No keepalive may restore floor control while
                 # waiting for a new F8 session, even if old enabled packets arrive.
                 sock.sendto(encode_action(latest, "none", "none", 1, floor_mode=False,
-                                         stop_reason="observation" if reason == "incomplete floor observation"
+                                         stop_reason=None if service_failure else
+                                         "observation" if reason == "incomplete floor observation"
                                          and latest.data.get("capabilities", {}).get("observation_recovery") == 1
                                          else "navigation"), peer)
                 remaining = max(0, deadline-time.monotonic()) if deadline is not None else self.duration
-                self.log(f"Navigation paused: {reason}. Control released; listener and key remain ready.")
-                self.log(f"Move Isaac manually if needed, then press F8 to rearm. "
+                self.log(f"{'Jev connection' if service_failure else 'Navigation'} paused: {reason}. Control released; listener and key remain ready.")
+                self.log(f"Press F8 to retry from fresh game state. "
                          f"{remaining:.1f}s and {max(0, self.max_calls-self.stats.decisions)} requests remain; "
                          "the timer keeps running. No new requests until a fresh F8 session.")
                 return True
@@ -698,8 +706,11 @@ class Controller:
                                 navigation_recovery = None
                                 manual_recovery = None
                                 floor_phase, waiting_for_rearm = None, False
-                                self.stats.navigation_rearms += 1
-                                self.log("Fresh F8 received; navigation resumed with the observed floor map. "
+                                if recovery_kind == "connection":
+                                    self.stats.connection_rearms += 1
+                                else:
+                                    self.stats.navigation_rearms += 1
+                                self.log("Fresh F8 received; control resumed with the observed floor map. "
                                          "Continuing with the same remaining time and request limits.")
                             if navigation_recovery is not None:
                                 eligible = False
@@ -854,7 +865,10 @@ class Controller:
                             except Exception as exc:
                                 self.stats.record_error(exc)
                                 self.stats.last_failed_observation = source.data
-                                if isinstance(exc, JevResponseError):
+                                if (isinstance(exc, JevTransportError) and self.floor_mode
+                                        and recover_navigation("Jev connection failed", service_failure=True)):
+                                    continue
+                                elif isinstance(exc, JevResponseError):
                                     invalid_streak += 1
                                     self.log(f"Invalid reply discarded ({exc.validation_code}); no action applied.")
                                     if invalid_streak >= 3:

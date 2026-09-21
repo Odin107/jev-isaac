@@ -31,6 +31,8 @@ PICKUP_TYPES = {
     300: "card", 340: "big chest", 350: "trinket", 360: "red chest",
     370: "trophy", 380: "bed", 390: "Moms chest",
 }
+HEART_TYPES = dict(enumerate(("full red", "half red", "soul", "eternal", "double red",
+    "black", "golden", "half soul", "scared red", "blended", "bone", "rotten"), start=1))
 
 
 def room_name(value):
@@ -94,6 +96,18 @@ def build_game_context(state, *, decision_kind="combat"):
             "player_velocity": {key: player[key] for key in ("vx", "vy") if key in player},
             "effect": "Player momentum can deflect tears diagonally when movement and firing axes differ. Input release does not instantly remove momentum.",
             "calibration": "Exact tear velocity and inherited-momentum multiplier are not measured; do not treat ShotSpeed as world velocity.",
+        },
+        "bombs_and_rocks": {
+            "bombs_available": player.get("bombs"),
+            "mechanics": "Placed bombs spend a bomb and explode after a fuse; the blast can hurt Isaac. Explosions can destroy ordinary and tinted rocks, opening space or exposing drops. Not every obstacle is bomb-destructible.",
+            "tinted_rocks": "Grid type 4 is an observed tinted rock: a potential source of useful drops such as soul hearts, supplies or an item. Actual contents remain unknown until exposed.",
+            "choices": "Only offered bomb_rock activities authorize spending. An offered rock-destruction activity places one bomb, retreats, waits for the observed blast and asks again; it does not automatically collect drops or choose a door.",
+            "limits": "Bomb plans require complete ordinary-bomb inventory data and a checked placement/retreat. Modified bombs, chain explosives, walls, pits and special rock mechanics are not covered by this planner. Missing choices do not mean bombs can never work there.",
+        },
+        "item_rooms": {
+            "value": "Treasure/item rooms are important sources of items that can strengthen the rest of the run. Exploring for an unvisited one can improve later combat; travel, keys, health and leaving the floor remain decisions to weigh.",
+            "doors": "The first floor's normal treasure room is generally unlocked; later normal treasure-room doors usually cost a key. Use the observed door lock and available actions, not an assumed cost.",
+            "knowledge": "controller_context.exploration.item_rooms distinguishes not_observed, found_unvisited and visited on this floor. No observed entrance does not prove no item room exists; some floors/modes lack normal item rooms. A visit does not prove its reward was collected.",
         },
         "limitations": [
             "Exported does not mean every game mechanic is represented. Laser beams, unrecognized floor effects, enemy attack phases and tear effects are incomplete.",
