@@ -1,0 +1,3219 @@
+{
+  "source": "reports/live-rock-shuffle-stop.json; unchanged room geometry with exact first recorded shuffle player/control/frame",
+  "observation": {
+    "session": "1789930227.892099:1:4128078729:table: 801E09E0:arm3",
+    "frame": 27570,
+    "floor": {
+      "stage_type": 0,
+      "room_list_index": 8,
+      "room_index": 83,
+      "stage": 1,
+      "seed": 3823210646,
+      "id": "1:0:3823210646"
+    },
+    "status": "Jev ON - F8 stops",
+    "paused": false,
+    "protocol": 1,
+    "run_id": "1789930227.892099:1:4128078729:table: 801E09E0",
+    "control": {
+      "interaction_status": "none",
+      "interaction": "none",
+      "move_stop_reason": "none",
+      "shoot": "none",
+      "source_frame": 27569,
+      "applied_move": "none",
+      "requested_move": "none"
+    },
+    "capabilities": {
+      "movement_pulses": 1,
+      "floor_control": 1,
+      "interaction_control": 1,
+      "floor_descent": 1,
+      "pickup_collection": 1,
+      "transport_diagnostics": 1,
+      "local_goal_control": 1
+    },
+    "room": {
+      "top_left": {
+        "y": 140.0,
+        "x": 60.0
+      },
+      "bottom_right": {
+        "y": 700.0,
+        "x": 1100.0
+      },
+      "frame": 451,
+      "clear": true,
+      "type": 1,
+      "shape": 11
+    },
+    "truncated_arrays": {
+      "enemies": false,
+      "projectiles": false,
+      "pickups": false,
+      "hazards": false
+    },
+    "type": "observation",
+    "floor_transition": false,
+    "floor_advance_permitted": false,
+    "truncated": false,
+    "floor_mode": true,
+    "transport": {
+      "rejected": 0,
+      "receive_timeouts": 42,
+      "accepted": 37,
+      "received": 38,
+      "last_rejection": "none",
+      "receive_polls": 80,
+      "last_accepted_frame": 27811,
+      "socket_epoch": 4,
+      "last_received_frame": 27816
+    },
+    "enabled": true,
+    "room_id": "1:0:83:8",
+    "player": {
+      "max_fire_delay": 10.0,
+      "unsafe_bomb_trinket": false,
+      "active_name": "",
+      "trinket": 0,
+      "subtype": 0,
+      "hearts": 3,
+      "bombs": 6,
+      "giga_bombs": 0,
+      "can_fly": false,
+      "vx": -1.8970303106158e-09,
+      "id": "375474220:0",
+      "inventory_truncated": false,
+      "shot_speed": 1.0,
+      "active_item": 0,
+      "active_charge": 0,
+      "max_hearts": 6,
+      "weapon_type": 1,
+      "active_description": "",
+      "can_pick_soul_hearts": true,
+      "has_flat_file": false,
+      "soul_hearts": 4,
+      "damage": 3.5,
+      "dead": false,
+      "move_speed": 1.0,
+      "pill_known": false,
+      "pocket_name": "",
+      "pocket_description": "",
+      "y": 287.35018920898,
+      "keys": 0,
+      "pocket_card": 0,
+      "active_charge_type": 0,
+      "trinket_1": 0,
+      "can_pick_red_hearts": true,
+      "vy": 1.0997275114059,
+      "coins": 7,
+      "variant": 0,
+      "pocket_pill": 0,
+      "tear_range": 260.0,
+      "active_max_charge": 0,
+      "can_pickup_items": true,
+      "can_pick_black_hearts": true,
+      "radius": 10.0,
+      "x": 548.97790527344,
+      "type": 1,
+      "player_type": 0,
+      "inventory": [
+        {
+          "name": "#SCATTER_BOMBS_NAME",
+          "count": 1,
+          "type": 1,
+          "description": "#SCATTER_BOMBS_DESCRIPTION",
+          "id": 366
+        }
+      ],
+      "weapon_types": [
+        1
+      ]
+    },
+    "enemies": [],
+    "projectiles": [],
+    "hazards": [
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 120.0,
+        "index": 0
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 80.0,
+        "y": 120.0,
+        "index": 1
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 120.0,
+        "y": 120.0,
+        "index": 2
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 160.0,
+        "y": 120.0,
+        "index": 3
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 200.0,
+        "y": 120.0,
+        "index": 4
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 240.0,
+        "y": 120.0,
+        "index": 5
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 280.0,
+        "y": 120.0,
+        "index": 6
+      },
+      {
+        "type": 16,
+        "variant": 8,
+        "kind": "grid",
+        "collision": 5,
+        "state": 2,
+        "radius": 20,
+        "x": 320.0,
+        "y": 120.0,
+        "index": 7
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 360.0,
+        "y": 120.0,
+        "index": 8
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 400.0,
+        "y": 120.0,
+        "index": 9
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 440.0,
+        "y": 120.0,
+        "index": 10
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 480.0,
+        "y": 120.0,
+        "index": 11
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 520.0,
+        "y": 120.0,
+        "index": 12
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 120.0,
+        "index": 13
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 600.0,
+        "y": 120.0,
+        "index": 14
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 640.0,
+        "y": 120.0,
+        "index": 15
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 680.0,
+        "y": 120.0,
+        "index": 16
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 720.0,
+        "y": 120.0,
+        "index": 17
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 760.0,
+        "y": 120.0,
+        "index": 18
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 800.0,
+        "y": 120.0,
+        "index": 19
+      },
+      {
+        "type": 16,
+        "variant": 7,
+        "kind": "grid",
+        "collision": 4,
+        "state": 1,
+        "radius": 20,
+        "x": 840.0,
+        "y": 120.0,
+        "index": 20
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 880.0,
+        "y": 120.0,
+        "index": 21
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 920.0,
+        "y": 120.0,
+        "index": 22
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 960.0,
+        "y": 120.0,
+        "index": 23
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 120.0,
+        "index": 24
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 120.0,
+        "index": 25
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 120.0,
+        "index": 26
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 120.0,
+        "index": 27
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 160.0,
+        "index": 28
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 80.0,
+        "y": 160.0,
+        "index": 29
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 120.0,
+        "y": 160.0,
+        "index": 30
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 160.0,
+        "y": 160.0,
+        "index": 31
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 160.0,
+        "index": 42
+      },
+      {
+        "type": 2,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 640.0,
+        "y": 160.0,
+        "index": 43
+      },
+      {
+        "type": 5,
+        "variant": 8,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 160.0,
+        "index": 44
+      },
+      {
+        "type": 2,
+        "variant": 2,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 160.0,
+        "index": 52
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 160.0,
+        "index": 53
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 160.0,
+        "index": 54
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 160.0,
+        "index": 55
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 200.0,
+        "index": 56
+      },
+      {
+        "type": 2,
+        "variant": 1004,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 80.0,
+        "y": 200.0,
+        "index": 57
+      },
+      {
+        "type": 2,
+        "variant": 1005,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 120.0,
+        "y": 200.0,
+        "index": 58
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 160.0,
+        "y": 200.0,
+        "index": 59
+      },
+      {
+        "type": 2,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 560.0,
+        "y": 200.0,
+        "index": 69
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 200.0,
+        "index": 70
+      },
+      {
+        "type": 2,
+        "variant": 1004,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 640.0,
+        "y": 200.0,
+        "index": 71
+      },
+      {
+        "type": 2,
+        "variant": 1005,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 200.0,
+        "index": 72
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 720.0,
+        "y": 200.0,
+        "index": 73
+      },
+      {
+        "type": 2,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 200.0,
+        "index": 82
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 200.0,
+        "index": 83
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 240.0,
+        "index": 84
+      },
+      {
+        "type": 2,
+        "variant": 1006,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 80.0,
+        "y": 240.0,
+        "index": 85
+      },
+      {
+        "type": 2,
+        "variant": 1007,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 120.0,
+        "y": 240.0,
+        "index": 86
+      },
+      {
+        "type": 2,
+        "variant": 2,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 160.0,
+        "y": 240.0,
+        "index": 87
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 200.0,
+        "y": 240.0,
+        "index": 88
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 560.0,
+        "y": 240.0,
+        "index": 97
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 240.0,
+        "index": 98
+      },
+      {
+        "type": 2,
+        "variant": 1006,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 640.0,
+        "y": 240.0,
+        "index": 99
+      },
+      {
+        "type": 2,
+        "variant": 1007,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 240.0,
+        "index": 100
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 720.0,
+        "y": 240.0,
+        "index": 101
+      },
+      {
+        "type": 2,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 240.0,
+        "index": 110
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 240.0,
+        "index": 111
+      },
+      {
+        "type": 16,
+        "variant": 8,
+        "kind": "grid",
+        "collision": 5,
+        "state": 2,
+        "radius": 20,
+        "x": 40.0,
+        "y": 280.0,
+        "index": 112
+      },
+      {
+        "type": 2,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 160.0,
+        "y": 280.0,
+        "index": 115
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 200.0,
+        "y": 280.0,
+        "index": 116
+      },
+      {
+        "type": 14,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 3,
+        "state": 500,
+        "tear_destructible": true,
+        "radius": 20,
+        "x": 440.0,
+        "y": 280.0,
+        "index": 122
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 280.0,
+        "index": 126
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 640.0,
+        "y": 280.0,
+        "index": 127
+      },
+      {
+        "type": 2,
+        "variant": 2,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 280.0,
+        "index": 128
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 280.0,
+        "index": 139
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 320.0,
+        "index": 140
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 320.0,
+        "index": 167
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 360.0,
+        "index": 168
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 360.0,
+        "index": 195
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 400.0,
+        "index": 196
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 520.0,
+        "y": 400.0,
+        "index": 208
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 560.0,
+        "y": 400.0,
+        "index": 209
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 400.0,
+        "index": 210
+      },
+      {
+        "type": 14,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 0,
+        "state": 1000,
+        "tear_destructible": false,
+        "radius": 20,
+        "x": 840.0,
+        "y": 400.0,
+        "index": 216
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 400.0,
+        "index": 222
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 400.0,
+        "index": 223
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 40.0,
+        "y": 440.0,
+        "index": 224
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 80.0,
+        "y": 440.0,
+        "index": 225
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 120.0,
+        "y": 440.0,
+        "index": 226
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 160.0,
+        "y": 440.0,
+        "index": 227
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 200.0,
+        "y": 440.0,
+        "index": 228
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 240.0,
+        "y": 440.0,
+        "index": 229
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 280.0,
+        "y": 440.0,
+        "index": 230
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 320.0,
+        "y": 440.0,
+        "index": 231
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 360.0,
+        "y": 440.0,
+        "index": 232
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 400.0,
+        "y": 440.0,
+        "index": 233
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 440.0,
+        "y": 440.0,
+        "index": 234
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 480.0,
+        "y": 440.0,
+        "index": 235
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 520.0,
+        "y": 440.0,
+        "index": 236
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 440.0,
+        "index": 237
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 440.0,
+        "index": 238
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 440.0,
+        "index": 250
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 440.0,
+        "index": 251
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 480.0,
+        "index": 265
+      },
+      {
+        "type": 2,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 600.0,
+        "y": 480.0,
+        "index": 266
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 480.0,
+        "index": 279
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 520.0,
+        "index": 293
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 520.0,
+        "index": 307
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 560.0,
+        "index": 321
+      },
+      {
+        "type": 2,
+        "variant": 1004,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 560.0,
+        "index": 332
+      },
+      {
+        "type": 2,
+        "variant": 1005,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 560.0,
+        "index": 333
+      },
+      {
+        "type": 16,
+        "variant": 8,
+        "kind": "grid",
+        "collision": 5,
+        "state": 2,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 560.0,
+        "index": 335
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 600.0,
+        "index": 349
+      },
+      {
+        "type": 2,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 600.0,
+        "index": 352
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 720.0,
+        "y": 600.0,
+        "index": 353
+      },
+      {
+        "type": 6,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 960.0,
+        "y": 600.0,
+        "index": 359
+      },
+      {
+        "type": 2,
+        "variant": 1006,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 600.0,
+        "index": 360
+      },
+      {
+        "type": 2,
+        "variant": 1007,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 600.0,
+        "index": 361
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 600.0,
+        "index": 362
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 600.0,
+        "index": 363
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 640.0,
+        "index": 377
+      },
+      {
+        "type": 6,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 680.0,
+        "y": 640.0,
+        "index": 380
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 720.0,
+        "y": 640.0,
+        "index": 381
+      },
+      {
+        "type": 2,
+        "variant": 1000,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 960.0,
+        "y": 640.0,
+        "index": 387
+      },
+      {
+        "type": 2,
+        "variant": 1001,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 640.0,
+        "index": 388
+      },
+      {
+        "type": 2,
+        "variant": 1002,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 640.0,
+        "index": 389
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 640.0,
+        "index": 390
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 640.0,
+        "index": 391
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 680.0,
+        "index": 405
+      },
+      {
+        "type": 2,
+        "variant": 2,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 680.0,
+        "index": 416
+      },
+      {
+        "type": 2,
+        "variant": 1003,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 680.0,
+        "index": 417
+      },
+      {
+        "type": 2,
+        "variant": 1,
+        "kind": "grid",
+        "collision": 3,
+        "state": 1,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 680.0,
+        "index": 418
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 680.0,
+        "index": 419
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 560.0,
+        "y": 720.0,
+        "index": 433
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 600.0,
+        "y": 720.0,
+        "index": 434
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 640.0,
+        "y": 720.0,
+        "index": 435
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 680.0,
+        "y": 720.0,
+        "index": 436
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 720.0,
+        "y": 720.0,
+        "index": 437
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 760.0,
+        "y": 720.0,
+        "index": 438
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 800.0,
+        "y": 720.0,
+        "index": 439
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 840.0,
+        "y": 720.0,
+        "index": 440
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 880.0,
+        "y": 720.0,
+        "index": 441
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 920.0,
+        "y": 720.0,
+        "index": 442
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 960.0,
+        "y": 720.0,
+        "index": 443
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1000.0,
+        "y": 720.0,
+        "index": 444
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1040.0,
+        "y": 720.0,
+        "index": 445
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1080.0,
+        "y": 720.0,
+        "index": 446
+      },
+      {
+        "type": 15,
+        "variant": 0,
+        "kind": "grid",
+        "collision": 4,
+        "state": 0,
+        "radius": 20,
+        "x": 1120.0,
+        "y": 720.0,
+        "index": 447
+      }
+    ],
+    "doors": [
+      {
+        "current_type": 1,
+        "variant": 8,
+        "open": true,
+        "busted": false,
+        "locked": false,
+        "curse_room_door": false,
+        "target_type": 4,
+        "target_index": 68,
+        "x": 40.0,
+        "y": 280.0,
+        "slot": 0
+      },
+      {
+        "current_type": 1,
+        "variant": 8,
+        "open": true,
+        "busted": false,
+        "locked": false,
+        "curse_room_door": true,
+        "target_type": 10,
+        "target_index": 56,
+        "x": 320.0,
+        "y": 120.0,
+        "slot": 1
+      },
+      {
+        "current_type": 1,
+        "variant": 7,
+        "open": false,
+        "busted": false,
+        "locked": false,
+        "curse_room_door": false,
+        "target_type": 7,
+        "target_index": 57,
+        "x": 840.0,
+        "y": 120.0,
+        "slot": 5
+      },
+      {
+        "current_type": 1,
+        "variant": 8,
+        "open": true,
+        "busted": false,
+        "locked": false,
+        "curse_room_door": false,
+        "target_type": 1,
+        "target_index": 84,
+        "x": 1120.0,
+        "y": 560.0,
+        "slot": 6
+      }
+    ],
+    "pickups": []
+  },
+  "recorded_controls": [
+    {
+      "frame": 27570,
+      "elapsed_ms": 49359.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.35018920898,
+        "vx": -1.8970303106158e-09,
+        "vy": 1.0997275114059
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27569,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27571,
+      "elapsed_ms": 49406.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 289.41806030273,
+        "vx": -1.4701984074605e-09,
+        "vy": 0.85228878259659
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27570,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27572,
+      "elapsed_ms": 49437.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.02066040039,
+        "vx": -1.1394036825152e-09,
+        "vy": 0.66052377223969
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27571,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27573,
+      "elapsed_ms": 49469.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.7112121582,
+        "vx": -7.0643019212113e-10,
+        "vy": -0.50283199548721
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27572,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27574,
+      "elapsed_ms": 49500.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.23751831055,
+        "vx": -4.3798670246176e-10,
+        "vy": -1.3828992843628
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27573,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27575,
+      "elapsed_ms": 49531.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.10897827148,
+        "vx": -2.7155175330584e-10,
+        "vy": -2.0649514198303
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27574,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27576,
+      "elapsed_ms": 49562.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 282.6979675293,
+        "vx": -1.6836207428206e-10,
+        "vy": -2.5935416221619
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27575,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27577,
+      "elapsed_ms": 49594.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 277.82122802734,
+        "vx": -1.3048059854803e-10,
+        "vy": -2.0099945068359
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27576,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27578,
+      "elapsed_ms": 49625.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 274.04174804688,
+        "vx": -1.0112245762972e-10,
+        "vy": -1.5577456951141
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27577,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27579,
+      "elapsed_ms": 49672.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 271.11267089844,
+        "vx": -7.8369900846642e-11,
+        "vy": -1.20725274086
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27578,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27580,
+      "elapsed_ms": 49703.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.00021362305,
+        "vx": -1.2403799765082e-08,
+        "vy": 0.099447198212147
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27579,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27581,
+      "elapsed_ms": 49734.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.71542358398,
+        "vx": -7.6903550194629e-09,
+        "vy": 1.0702760219574
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27580,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27582,
+      "elapsed_ms": 49765.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 273.25610351563,
+        "vx": -4.7680197567956e-09,
+        "vy": 1.8226683139801
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27581,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27583,
+      "elapsed_ms": 49797.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 277.21154785156,
+        "vx": -2.9561717518334e-09,
+        "vy": 2.4057722091675
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27582,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27584,
+      "elapsed_ms": 49828.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 281.73519897461,
+        "vx": -2.291032918933e-09,
+        "vy": 1.8644733428955
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27583,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27585,
+      "elapsed_ms": 49859.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 285.24102783203,
+        "vx": -1.7755503733952e-09,
+        "vy": 1.444966673851
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27584,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27586,
+      "elapsed_ms": 49890.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.95806884766,
+        "vx": -1.37605138395e-09,
+        "vy": 1.1198490858078
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27585,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27587,
+      "elapsed_ms": 49937.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.0637512207,
+        "vx": -1.0664397143145e-09,
+        "vy": 0.86788296699524
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27586,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27588,
+      "elapsed_ms": 49984.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.69567871094,
+        "vx": -8.2649076471597e-10,
+        "vy": 0.67260926961899
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27587,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27589,
+      "elapsed_ms": 50000.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 292.40850830078,
+        "vx": -5.1242421417186e-10,
+        "vy": -0.49420008063316
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27588,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27590,
+      "elapsed_ms": 50047.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.95104980469,
+        "vx": -3.1770297503897e-10,
+        "vy": -1.3762096166611
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27589,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27591,
+      "elapsed_ms": 50062.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.83508300781,
+        "vx": -1.9697582454015e-10,
+        "vy": -2.0597667694092
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27590,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27592,
+      "elapsed_ms": 50094.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 283.43383789063,
+        "vx": -1.2212499067576e-10,
+        "vy": -2.5895235538483
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27591,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27593,
+      "elapsed_ms": 50125.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 278.56463623047,
+        "vx": -9.464685979399e-11,
+        "vy": -2.0068807601929
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27592,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27594,
+      "elapsed_ms": 50172.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 274.791015625,
+        "vx": -7.3351311136172e-11,
+        "vy": -1.5553324222565
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27593,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27595,
+      "elapsed_ms": 50203.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 271.86645507813,
+        "vx": -5.6847259538584e-11,
+        "vy": -1.2053825855255
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27594,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27596,
+      "elapsed_ms": 50250.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.00030517578,
+        "vx": -7.582372951731e-09,
+        "vy": 0.0065828561782837
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27595,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27597,
+      "elapsed_ms": 50281.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.54089355469,
+        "vx": -4.7010706438755e-09,
+        "vy": 0.99830621480942
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27595,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27598,
+      "elapsed_ms": 50297.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 272.94622802734,
+        "vx": -2.9146636215671e-09,
+        "vy": 1.7668918371201
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27597,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27599,
+      "elapsed_ms": 50328.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 276.79681396484,
+        "vx": -1.8070914764579e-09,
+        "vy": 2.3625454902649
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27598,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27600,
+      "elapsed_ms": 50359.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 281.23919677734,
+        "vx": -1.4004957193947e-09,
+        "vy": 1.8309725522995
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27599,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27601,
+      "elapsed_ms": 50390.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 284.68203735352,
+        "vx": -1.0853841159175e-09,
+        "vy": 1.4190036058426
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27600,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27602,
+      "elapsed_ms": 50422.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.35025024414,
+        "vx": -8.4117257603822e-10,
+        "vy": 1.0997277498245
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27601,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27603,
+      "elapsed_ms": 50469.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 289.41812133789,
+        "vx": -6.5190869369403e-10,
+        "vy": 0.85228896141052
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27602,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27604,
+      "elapsed_ms": 50515.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.02072143555,
+        "vx": -5.0522919181617e-10,
+        "vy": 0.66052389144897
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27603,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27605,
+      "elapsed_ms": 50531.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.71127319336,
+        "vx": -3.1324207117045e-10,
+        "vy": -0.50283187627792
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27604,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27606,
+      "elapsed_ms": 50578.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.2375793457,
+        "vx": -1.9421006469678e-10,
+        "vy": -1.3828991651535
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27605,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27607,
+      "elapsed_ms": 50594.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.10903930664,
+        "vx": -1.2041022345866e-10,
+        "vy": -2.0649511814117
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27605,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27608,
+      "elapsed_ms": 50625.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 282.69802856445,
+        "vx": -7.4654338266811e-11,
+        "vy": -2.5935416221619
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27607,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27609,
+      "elapsed_ms": 50656.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 277.8212890625,
+        "vx": -5.7857107993442e-11,
+        "vy": -2.0099945068359
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27608,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27610,
+      "elapsed_ms": 50687.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 274.04180908203,
+        "vx": -4.4839253837692e-11,
+        "vy": -1.5577456951141
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27609,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27611,
+      "elapsed_ms": 50750.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 271.11273193359,
+        "vx": -3.4750417821083e-11,
+        "vy": -1.20725274086
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27610,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27612,
+      "elapsed_ms": 50781.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.0002746582,
+        "vx": -1.2369994806249e-08,
+        "vy": 0.099447198212147
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27611,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27613,
+      "elapsed_ms": 50797.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.71548461914,
+        "vx": -7.6693966732932e-09,
+        "vy": 1.0702760219574
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27612,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27614,
+      "elapsed_ms": 50828.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 273.25616455078,
+        "vx": -4.7550252624262e-09,
+        "vy": 1.8226683139801
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27613,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27615,
+      "elapsed_ms": 50859.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 277.21160888672,
+        "vx": -2.9481153074329e-09,
+        "vy": 2.4057722091675
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27614,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27616,
+      "elapsed_ms": 50890.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 281.73526000977,
+        "vx": -2.2847892466871e-09,
+        "vy": 1.8644733428955
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27615,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27617,
+      "elapsed_ms": 50922.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 285.24108886719,
+        "vx": -1.7707115773646e-09,
+        "vy": 1.444966673851
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27616,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27618,
+      "elapsed_ms": 50969.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.95812988281,
+        "vx": -1.3723013836398e-09,
+        "vy": 1.1198490858078
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27617,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27619,
+      "elapsed_ms": 51015.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.06381225586,
+        "vx": -1.0635335945253e-09,
+        "vy": 0.86788296699524
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27618,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27620,
+      "elapsed_ms": 51047.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 291.69573974609,
+        "vx": -8.2423851077706e-10,
+        "vy": 0.67260926961899
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27619,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27621,
+      "elapsed_ms": 51078.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 292.40856933594,
+        "vx": -5.1102783116264e-10,
+        "vy": -0.49420008063316
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27620,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27622,
+      "elapsed_ms": 51109.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 290.95111083984,
+        "vx": -3.1683722312437e-10,
+        "vy": -1.3762096166611
+      },
+      "move": "up",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27621,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27623,
+      "elapsed_ms": 51125.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 287.83514404297,
+        "vx": -1.9643904558553e-10,
+        "vy": -2.0597667694092
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27622,
+        "applied_move": "up",
+        "requested_move": "up"
+      }
+    },
+    {
+      "frame": 27624,
+      "elapsed_ms": 51156.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 283.43389892578,
+        "vx": -1.2179220132413e-10,
+        "vy": -2.5895235538483
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27623,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27625,
+      "elapsed_ms": 51187.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 278.56469726563,
+        "vx": -9.4388948046475e-11,
+        "vy": -2.0068807601929
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27624,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27626,
+      "elapsed_ms": 51219.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 274.79107666016,
+        "vx": -7.3151429358376e-11,
+        "vy": -1.5553324222565
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27625,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27627,
+      "elapsed_ms": 51281.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 271.86651611328,
+        "vx": -5.6692352201626e-11,
+        "vy": -1.2053825855255
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27626,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27628,
+      "elapsed_ms": 51312.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.00036621094,
+        "vx": -7.5822530476444e-09,
+        "vy": 0.0065828561782837
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27627,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27629,
+      "elapsed_ms": 51344.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 270.54095458984,
+        "vx": -4.7009964809774e-09,
+        "vy": 0.99830621480942
+      },
+      "move": "down",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27628,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27630,
+      "elapsed_ms": 51359.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 272.9462890625,
+        "vx": -2.9146174362893e-09,
+        "vy": 1.7668918371201
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27629,
+        "applied_move": "down",
+        "requested_move": "down"
+      }
+    },
+    {
+      "frame": 27631,
+      "elapsed_ms": 51390.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 276.796875,
+        "vx": -1.8070627216815e-09,
+        "vy": 2.3625454902649
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27630,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    },
+    {
+      "frame": 27632,
+      "elapsed_ms": 51422.0,
+      "player": {
+        "x": 548.97790527344,
+        "y": 281.2392578125,
+        "vx": -1.4004735149342e-09,
+        "vy": 1.8309725522995
+      },
+      "move": "none",
+      "shoot": "none",
+      "status": "Shoot the observed ordinary poop from a clear lane, then check for any actual drops",
+      "interaction": "none",
+      "observed_control": {
+        "interaction_status": "none",
+        "interaction": "none",
+        "move_stop_reason": "none",
+        "shoot": "none",
+        "source_frame": 27631,
+        "applied_move": "none",
+        "requested_move": "none"
+      }
+    }
+  ]
+}

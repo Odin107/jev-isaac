@@ -1,0 +1,293 @@
+"""Execute Jev-selected activities; never choose the next room or pickup."""
+import copy
+import math
+
+from .adventure import AdventureCandidate, _context, candidates, candidate_valid
+from .combat import _number, _point
+from .combat_stall import no_living_enemies
+from .exploration import FloorNavigator, ExplorationAction, _Door, _door_move, _validated, _lingering_projectile_move, _ground_effect_escape
+from .protocol import valid_switches
+from .state_context import room_name
+from .switches import SwitchNavigator, _ordinary, _geometry
+from .tnt import TntDemolition, ordinary_tears
+from .tnt_geometry import plan_demolition
+
+
+class PlayerNavigator(FloorNavigator):
+    def __init__(self, *, continue_floors=False):
+        super().__init__(adventure_mode=True, continue_floors=continue_floors, allow_secret=True)
+        self._offers = ()
+        self._intent = None
+        self._selected_switch = SwitchNavigator()
+        self._tnt = None
+        self._tnt_guard = None
+        self._activity_started = self._activity_progress = 0
+        self._activity_position = None
+        self._idle_until = self._idle_frame = 0
+        self._player_visit = None
+        self.player_events = []
+        self.activity_failures = []
+
+    def _event(self, state, event, reason, candidate=None, *, origin_index=None):
+        candidate = candidate or self._intent
+        self.player_events.append({"frame": state["frame"], "event": event,
+            "room_index": state["floor"]["room_index"] if origin_index is None else origin_index,
+            "target_index": candidate.details.get("target_index") if candidate else None,
+            "key": candidate.key if candidate else None,
+            "kind": candidate.kind if candidate else "wait", "reason": reason})
+        del self.player_events[:-80]
+
+    def _remember_blast(self):
+        if self._tnt is not None and self._tnt.last_fire_frame is not None:
+            context = self._tnt.context
+            self._tnt_guard = ((context[0], context[2], context[3], context[4]), self._tnt.last_fire_frame+60)
+
+    def cancel_intent(self):
+        self._remember_blast()
+        self._offers, self._intent, self._tnt = (), None, None
+        self._selected_switch.reset()
+        self._adventure.plan, self._adventure.offers = None, ()
+        self._reset_traversal()
+
+    def rearmed(self, state):
+        self._remember_blast()
+        remembered = super().rearmed(state)
+        fresh = PlayerNavigator(continue_floors=self.continue_floors)
+        fresh.__dict__.update(remembered.__dict__)
+        fresh._tnt_guard = self._tnt_guard
+        fresh.player_events = copy.deepcopy(self.player_events)
+        fresh.activity_failures = copy.deepcopy(self.activity_failures)
+        return fresh
+
+    def observe(self, state):
+        previous = self._intent
+        previous_index = self._current_index
+        super().observe(state)
+        if self._stop or not state["enabled"] or state["paused"] or state["player"]["dead"]:
+            return
+        visit = (state["run_id"], state["room_id"])
+        if self._player_visit != visit:
+            if previous is not None:
+                self._event(state, "finished", "observed room transition", previous, origin_index=previous_index)
+            self._offers, self._intent, self._tnt = (), None, None
+            self._selected_switch.reset()
+            self._player_visit = visit
+            self._idle_until = 0
+            self._idle_frame = state["frame"]+18
+        if not state["room"]["clear"] and not no_living_enemies(state) and self._intent is not None:
+            self._event(state, "canceled", "combat resumed; Jev needs a fresh combat choice")
+            self.cancel_intent()
+
+    @property
+    def adventure_options(self):
+        return self._offers
+
+    @property
+    def adventure_stats(self):
+        return dict(super().adventure_stats, player_events=copy.deepcopy(self.player_events),
+                    activity_failures=copy.deepcopy(self.activity_failures))
+
+    def decision_context(self):
+        context = super().decision_context()
+        context["authority"] = "Jev chooses all activities; no automatic room order, free pickups or puzzle selection."
+        context["selected_activity"] = ({"key": self._intent.key, "kind": self._intent.kind}
+                                        if self._intent else None)
+        context["recent_player_outcomes"] = copy.deepcopy(self.player_events[-6:])
+        context["secret_rooms"] = "Observed open secret and supersecret doors can be selected. Unopened hidden entrances are not search/bomb candidates."
+        return context
+
+    def _puzzle_offers(self, state, parsed):
+        if (state["room"].get("has_trigger_pressure_plates") is not True
+                or not valid_switches(state.get("switches")) or state["room"]["type"] != 1
+                or state.get("capabilities", {}).get("room_switches") != 1):
+            return []
+        result = []
+        for row in state["switches"]:
+            if not _ordinary(row, 0):
+                continue
+            point = _point(row)
+            result.append(AdventureCandidate(f"switch:{row['index']}", "press_switch", str(row["index"]),
+                point, {}, "Press this observed required pressure plate; this does not authorize demolition",
+                context=_context(state), details={"switch_index": row["index"]}))
+            if not ordinary_tears(state["player"]):
+                continue
+            boxes, _, _, phase = _geometry(state, parsed[4], (row["index"], *point))
+            for hazard in state["hazards"]:
+                if (hazard.get("kind") != "grid" or hazard.get("type") != 12
+                        or type(hazard.get("index")) is not int):
+                    continue
+                plan = plan_demolition(state, point, boxes, phase, target_index=hazard["index"])
+                if plan is not None:
+                    result.append(AdventureCandidate(f"tnt:{hazard['index']}:switch:{row['index']}",
+                        "demolish_tnt", str(hazard["index"]), plan.target_point, {},
+                        "Shoot this blocking TNT with bounded tear pulses and retreat; possible chain damage. Then ask Jev again",
+                        context=_context(state), details={"switch_index": row["index"], "switch_point": point,
+                            "tnt_index": hazard["index"], "firing_point": plan.firing_point,
+                            "retreat_point": plan.retreat_point}))
+        return result
+
+    def _offer(self, state, parsed):
+        choices = []
+        self._allow_descend = self.continue_floors and state["room"]["clear"] and state["room"]["type"] == 5
+        if state["room"]["clear"]:
+            choices.extend(candidates(state, rewards_done=True, allow_descend=self._allow_descend, limit=160))
+            for door in parsed[-1]:
+                destination = self._aliases.get(door.target_index)
+                known = self._rooms.get(destination)
+                recent = [e for e in self.player_events if e.get("room_index") == state["floor"]["room_index"]
+                          and e.get("key") == f"enter:{door.slot}:{door.target_index}"]
+                known_exits = [{"target_index": d.target_index, "target_type": d.target_type,
+                               "target_room": room_name(d.target_type),
+                               "visited": self._aliases.get(d.target_index) in self._rooms}
+                              for d in self._graph.get(destination, ())]
+                choices.append(AdventureCandidate(f"enter:{door.slot}:{door.target_index}", "enter_door",
+                    str(door.target_index), door.point, {}, f"Enter the observed {room_name(door.target_type)} room door",
+                    context=_context(state), details={"slot": door.slot, "target_index": door.target_index,
+                        "target_type": door.target_type, "visited": known is not None,
+                        "clear_last_observed": known[1] if known is not None else None,
+                        "remembered_destination_exits": known_exits,
+                        "destination_doors_inspected": destination in self._inspected,
+                        "recent_times_selected_from_here": sum(e["event"] == "selected" for e in recent),
+                        "last_outcome_from_here": next((e["reason"] for e in reversed(recent)
+                                                         if e["event"] in ("finished", "failed")), None)}))
+            if state["room"]["type"] == 10:
+                from .curse_doors import curse_candidates
+                choices.extend(curse_candidates(state, leaving=True))
+        else:
+            choices.extend(self._puzzle_offers(state, parsed))
+        # Keep model waiting explicit, including a room with no supported action.
+        choices.append(AdventureCandidate("wait", "wait", "wait", None, {},
+                                          "Wait briefly, then reconsider", context=_context(state)))
+        self._offers = tuple({c.key: c for c in choices}.values())[:192]
+
+    def accept_adventure(self, key, state, now, **kwargs):
+        selected = next((c for c in self._offers if c.key == key), None)
+        if key is None or key == "wait":
+            self._event(state, "selected", "Jev chose to wait")
+            self._offers = ()
+            self._idle_until = now+1
+            return True
+        self._offers = ()
+        if selected is None or selected.context != _context(state):
+            return False
+        parsed = _validated(state, allow_shop=True, allow_secret=True)
+        if (parsed is None or not state["enabled"] or state["paused"] or state["player"]["dead"]
+                or (not state["room"]["clear"] and not no_living_enemies(state))):
+            return False
+        if selected.kind == "enter_door":
+            d = selected.details
+            chosen = _Door(d["slot"], selected.point, d["target_index"], d["target_type"])
+            if not state["room"]["clear"] or chosen not in parsed[-1]:
+                return False
+            self._pending = chosen
+        elif selected.kind in ("press_switch", "demolish_tnt"):
+            row = next((r for r in state.get("switches", []) if r["index"] == selected.details["switch_index"]), None)
+            point = selected.point if selected.kind == "press_switch" else tuple(selected.details["switch_point"])
+            if row is None or not _ordinary(row, 0) or _point(row) != point or state["room"]["clear"]:
+                return False
+            self._selected_switch.reset()
+            if selected.kind == "demolish_tnt":
+                from .tnt_geometry import _ordinary as ordinary_tnt
+                target = next((h for h in state["hazards"] if h.get("kind") == "grid"
+                    and h.get("index") == selected.details["tnt_index"]), None)
+                if target is None or not ordinary_tnt(target) or _point(target) != selected.point:
+                    return False
+                self._tnt = TntDemolition(target_index=selected.details["tnt_index"])
+        else:
+            if not candidate_valid(state, selected, rewards_done=True, allow_descend=self._allow_descend):
+                return False
+            self._adventure.offers = (selected,)
+            if not super().accept_adventure(key, state, now):
+                return False
+        self._intent = selected
+        self._activity_started = self._activity_progress = now
+        self._activity_position = _point(state["player"])
+        self._event(state, "selected", "Jev selected this activity")
+        return True
+
+    def _done(self, state, now, reason, *, failed=False):
+        if failed:
+            self.activity_failures.append(copy.deepcopy({"reason": reason,
+                "candidate": self._intent.as_dict() if self._intent else None, "observation": state}))
+            del self.activity_failures[:-8]
+        self._event(state, "failed" if failed else "finished", reason)
+        self.cancel_intent()
+        self._idle_until, self._idle_frame = now+.4, state["frame"]+12
+        return ExplorationAction(status=f"Activity {'failed' if failed else 'finished'}: {reason}; asking Jev again")
+
+    def step(self, state, now_monotonic):
+        now = now_monotonic
+        if not _number(now, limit=1e15) or self._last_now is not None and now < self._last_now:
+            return self._finish("invalid exploration clock")
+        self._last_now = now
+        self.observe(state)
+        if self._stop:
+            return ExplorationAction(stop_reason=self._stop)
+        if not state["enabled"] or state["paused"] or state["player"]["dead"]:
+            return ExplorationAction(status="waiting for armed play")
+        parsed = _validated(state, allow_shop=True, allow_secret=True)
+        if parsed is None:
+            return ExplorationAction(stop_reason="incomplete floor observation")
+        if not state["room"]["clear"] and not no_living_enemies(state):
+            return ExplorationAction(status="combat")
+        if self._tnt_guard is not None and self._tnt is None:
+            identity, frame = self._tnt_guard
+            actual = (state["run_id"], state["room_id"], state["floor"]["id"], state["floor"].get("dimension"))
+            if identity == actual and state["frame"] < frame:
+                return ExplorationAction(status="Local override: waiting for committed TNT shot after rearm")
+            self._tnt_guard = None
+        # Once explosives are committed, finish the selected retreat. Otherwise
+        # a fresh collision dodge can briefly interrupt movement, never pick loot.
+        bomb_retreat = self._adventure.plan is not None and self._adventure.phase in ("retreat", "wait_blast")
+        if self._tnt is None and not bomb_retreat:
+            escape = _ground_effect_escape(state, parsed)
+            if escape is not None:
+                return ExplorationAction(move=escape, status="Local override: leaving enemy floor creep")
+        if state["projectiles"] and self._tnt is None and not bomb_retreat:
+            return ExplorationAction(move=_lingering_projectile_move(state, parsed),
+                                     status="Local override: emergency projectile avoidance")
+        selected = self._intent
+        if selected is not None:
+            if selected.kind == "press_switch":
+                row = next((r for r in state.get("switches", []) if r["index"] == selected.details["switch_index"]), None)
+                if state["room"]["clear"] or row is not None and _ordinary(row, 3):
+                    return self._done(state, now, "selected switch activated")
+                action = self._selected_switch.step(state, now, selected_switch=selected.details["switch_index"], allow_demolition=False)
+            elif selected.kind == "demolish_tnt":
+                if state["room"]["clear"]:
+                    return self._done(state, now, "room cleared during selected demolition")
+                target = (selected.details["switch_index"], *selected.details["switch_point"])
+                boxes, _, _, phase = _geometry(state, parsed[4], target)
+                action = self._tnt.step(state, now, target[1:], boxes, phase)
+                if self._tnt.complete:
+                    return self._done(state, now, "selected TNT cleared; Jev must choose the next activity")
+            elif self._adventure.plan is not None:
+                action = self._adventure.step(state, now, allow_descend=self._allow_descend)
+                if self._adventure.plan is None and selected.kind != "unlock_door":
+                    reason = self._adventure.events[-1]["reason"] if self._adventure.events else "interaction ended"
+                    failed = bool(self._adventure.events and self._adventure.events[-1]["event"] == "abandoned")
+                    return self._done(state, now, reason, failed=failed)
+            elif self._pending is not None:
+                if self._pending not in parsed[-1]:
+                    return self._done(state, now, "selected door changed", failed=True)
+                move = _door_move(state, parsed, self._pending)
+                if move is None:
+                    return self._done(state, now, "selected door route blocked; no automatic alternate", failed=True)
+                position = _point(state["player"])
+                if math.dist(position, self._activity_position) >= 10:
+                    self._activity_progress, self._activity_position = now, position
+                if now-self._activity_started >= self._transition_timeout or now-self._activity_progress >= self._stuck_timeout:
+                    return self._done(state, now, "selected door traversal stalled", failed=True)
+                action = ExplorationAction(move=move, status=f"Jev selected: entering room {self._pending.target_index}")
+            else:
+                return self._done(state, now, "selected activity ended")
+            if action is None or action.stop_reason:
+                return self._done(state, now, getattr(action, "status", None) or "selected activity no longer executable", failed=True)
+            return action
+        if now < self._idle_until or state["frame"] < self._idle_frame:
+            return ExplorationAction(status="waiting for Jev-selected pause or observed effects")
+        if any(h["kind"] in ("bomb", "laser") for h in state["hazards"]):
+            return ExplorationAction(status="Local override: waiting for an explosive or laser hazard")
+        if not self._offers:
+            self._offer(state, parsed)
+        return ExplorationAction(status="waiting for Jev's next activity")

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jev-isaac"
+version = "0.1.0"
+description = "Jev-driven Binding of Isaac gameplay through a Lua bridge and Python controller"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+jev-isaac = "jev_isaac.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <name>Jev Bridge</name>
+  <directory>jev_bridge</directory>
+  <description>Local, opt-in UDP observations and bounded movement/shooting for the Jev one-room prototype. F8 enables or stops control. Requires --luadebug. Runtime validation pending.</description>
+  <version>0.1.0</version>
+</metadata>

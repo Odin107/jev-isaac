@@ -1,0 +1,700 @@
+{
+  "paused": false,
+  "room": {
+    "shape": 1,
+    "frame": 34,
+    "top_left": {
+      "x": 60.0,
+      "y": 140.0
+    },
+    "clear": true,
+    "bottom_right": {
+      "x": 580.0,
+      "y": 420.0
+    },
+    "type": 1
+  },
+  "run_id": "fixture-run",
+  "floor": {
+    "room_list_index": 9,
+    "stage": 1,
+    "room_index": 82,
+    "id": "fixture-floor1",
+    "stage_type": 0,
+    "seed": 127192506
+  },
+  "session": "fixture-run:arm1",
+  "floor_transition": false,
+  "room_id": "fixture-room82:visit1",
+  "protocol": 1,
+  "player": {
+    "variant": 0,
+    "x": 389.51062011719,
+    "y": 382.61889648438,
+    "move_speed": 1.0,
+    "max_hearts": 6,
+    "hearts": 6,
+    "dead": false,
+    "vx": -0.30261540412903,
+    "radius": 10.0,
+    "subtype": 0,
+    "soul_hearts": 0,
+    "id": "fixture-player",
+    "vy": 1.2497429847717,
+    "type": 1
+  },
+  "capabilities": {
+    "local_goal_control": 1,
+    "transport_diagnostics": 1,
+    "movement_pulses": 1,
+    "floor_control": 1
+  },
+  "transport": {
+    "last_received_frame": 31415,
+    "rejected": 0,
+    "last_accepted_frame": 31414,
+    "accepted": 34,
+    "received": 34,
+    "last_rejection": "none"
+  },
+  "truncated_arrays": {
+    "hazards": false,
+    "enemies": false,
+    "projectiles": false
+  },
+  "truncated": false,
+  "status": "Jev ON - F8 stops",
+  "frame": 31415,
+  "floor_mode": true,
+  "control": {
+    "requested_move": "down_right",
+    "applied_move": "down_right",
+    "move_stop_reason": "none",
+    "shoot": "none",
+    "source_frame": 31414
+  },
+  "enabled": true,
+  "type": "observation",
+  "enemies": [],
+  "projectiles": [],
+  "hazards": [
+    {
+      "variant": 0,
+      "x": 80.0,
+      "y": 160.0,
+      "kind": "fire",
+      "radius": 13.0,
+      "subtype": 2,
+      "vx": 0.0,
+      "id": "fixture-hazard-0",
+      "vy": 0.0,
+      "type": 33
+    },
+    {
+      "variant": 0,
+      "x": 560.0,
+      "y": 160.0,
+      "kind": "fire",
+      "radius": 13.0,
+      "subtype": 1,
+      "vx": 0.0,
+      "id": "fixture-hazard-1",
+      "vy": 0.0,
+      "type": 33
+    },
+    {
+      "variant": 0,
+      "x": 80.0,
+      "y": 400.0,
+      "kind": "fire",
+      "radius": 13.0,
+      "subtype": 1,
+      "vx": 0.0,
+      "id": "fixture-hazard-2",
+      "vy": 0.0,
+      "type": 33
+    },
+    {
+      "variant": 0,
+      "x": 560.0,
+      "y": 400.0,
+      "kind": "fire",
+      "radius": 13.0,
+      "subtype": 1,
+      "vx": 0.0,
+      "id": "fixture-hazard-3",
+      "vy": 0.0,
+      "type": 33
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 40.0,
+      "index": 0,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 80.0,
+      "index": 1,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 120.0,
+      "index": 2,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 160.0,
+      "index": 3,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 200.0,
+      "index": 4,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 240.0,
+      "index": 5,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 280.0,
+      "index": 6,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 320.0,
+      "index": 7,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 360.0,
+      "index": 8,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 400.0,
+      "index": 9,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 440.0,
+      "index": 10,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 480.0,
+      "index": 11,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 520.0,
+      "index": 12,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 560.0,
+      "index": 13,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 120.0,
+      "x": 600.0,
+      "index": 14,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 160.0,
+      "x": 40.0,
+      "index": 15,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 160.0,
+      "x": 600.0,
+      "index": 29,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 200.0,
+      "x": 40.0,
+      "index": 30,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 200.0,
+      "x": 280.0,
+      "index": 36,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 200.0,
+      "x": 320.0,
+      "index": 37,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 200.0,
+      "x": 360.0,
+      "index": 38,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 200.0,
+      "x": 600.0,
+      "index": 44,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 240.0,
+      "x": 40.0,
+      "index": 45,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 240.0,
+      "x": 240.0,
+      "index": 50,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 240.0,
+      "x": 400.0,
+      "index": 54,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 240.0,
+      "x": 600.0,
+      "index": 59,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 280.0,
+      "x": 40.0,
+      "index": 60,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 280.0,
+      "x": 400.0,
+      "index": 69,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 280.0,
+      "x": 600.0,
+      "index": 74,
+      "state": 2,
+      "collision": 5,
+      "type": 16,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 320.0,
+      "x": 40.0,
+      "index": 75,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 320.0,
+      "x": 240.0,
+      "index": 80,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 320.0,
+      "x": 400.0,
+      "index": 84,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 320.0,
+      "x": 600.0,
+      "index": 89,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 360.0,
+      "x": 40.0,
+      "index": 90,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 360.0,
+      "x": 280.0,
+      "index": 96,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 360.0,
+      "x": 320.0,
+      "index": 97,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 360.0,
+      "x": 360.0,
+      "index": 98,
+      "state": 1,
+      "collision": 3,
+      "type": 2,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 360.0,
+      "x": 600.0,
+      "index": 104,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 400.0,
+      "x": 40.0,
+      "index": 105,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 400.0,
+      "x": 600.0,
+      "index": 119,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 40.0,
+      "index": 120,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 80.0,
+      "index": 121,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 120.0,
+      "index": 122,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 160.0,
+      "index": 123,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 200.0,
+      "index": 124,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 240.0,
+      "index": 125,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 280.0,
+      "index": 126,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 320.0,
+      "index": 127,
+      "state": 2,
+      "collision": 5,
+      "type": 16,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 360.0,
+      "index": 128,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 400.0,
+      "index": 129,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 440.0,
+      "index": 130,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 480.0,
+      "index": 131,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 520.0,
+      "index": 132,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 560.0,
+      "index": 133,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    },
+    {
+      "radius": 20,
+      "y": 440.0,
+      "x": 600.0,
+      "index": 134,
+      "state": 0,
+      "collision": 4,
+      "type": 15,
+      "kind": "grid"
+    }
+  ],
+  "doors": [
+    {
+      "target_type": 1,
+      "x": 600.0,
+      "y": 280.0,
+      "slot": 2,
+      "locked": false,
+      "target_index": 83,
+      "open": true
+    },
+    {
+      "target_type": 1,
+      "x": 320.0,
+      "y": 440.0,
+      "slot": 3,
+      "locked": false,
+      "target_index": 95,
+      "open": true
+    }
+  ]
+}

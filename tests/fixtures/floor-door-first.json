@@ -1,0 +1,676 @@
+{
+  "frame": 17859,
+  "protocol": 1,
+  "type": "observation",
+  "paused": false,
+  "enabled": true,
+  "truncated": false,
+  "truncated_arrays": {
+    "projectiles": false,
+    "enemies": false,
+    "hazards": false
+  },
+  "player": {
+    "variant": 0,
+    "type": 1,
+    "x": 570.10729980469,
+    "y": 287.75366210938,
+    "vx": 0.23168276250362,
+    "dead": false,
+    "max_hearts": 6,
+    "soul_hearts": 1,
+    "id": "fixture-player",
+    "hearts": 6,
+    "subtype": 0,
+    "radius": 10.0,
+    "vy": -0.63498765230179,
+    "move_speed": 1.0
+  },
+  "room": {
+    "top_left": {
+      "x": 60.0,
+      "y": 140.0
+    },
+    "clear": true,
+    "shape": 1,
+    "type": 1,
+    "bottom_right": {
+      "x": 580.0,
+      "y": 420.0
+    },
+    "frame": 816
+  },
+  "floor": {
+    "room_index": 82,
+    "id": "fixture-floor",
+    "seed": 127192506,
+    "stage": 1,
+    "stage_type": 0,
+    "room_list_index": 9
+  },
+  "enemies": [],
+  "projectiles": [],
+  "hazards": [
+    {
+      "variant": 0,
+      "type": 33,
+      "x": 80.0,
+      "y": 160.0,
+      "id": "fixture-hazard-0",
+      "kind": "fire",
+      "subtype": 2,
+      "radius": 13.0,
+      "vy": 0.0,
+      "vx": 0.0
+    },
+    {
+      "variant": 0,
+      "type": 33,
+      "x": 560.0,
+      "y": 160.0,
+      "id": "fixture-hazard-1",
+      "kind": "fire",
+      "subtype": 1,
+      "radius": 13.0,
+      "vy": 0.0,
+      "vx": 0.0
+    },
+    {
+      "variant": 0,
+      "type": 33,
+      "x": 80.0,
+      "y": 400.0,
+      "id": "fixture-hazard-2",
+      "kind": "fire",
+      "subtype": 1,
+      "radius": 13.0,
+      "vy": 0.0,
+      "vx": 0.0
+    },
+    {
+      "variant": 0,
+      "type": 33,
+      "x": 560.0,
+      "y": 400.0,
+      "id": "fixture-hazard-3",
+      "kind": "fire",
+      "subtype": 1,
+      "radius": 13.0,
+      "vy": 0.0,
+      "vx": 0.0
+    },
+    {
+      "radius": 20,
+      "index": 0,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 1,
+      "x": 80.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 2,
+      "x": 120.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 3,
+      "x": 160.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 4,
+      "x": 200.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 5,
+      "x": 240.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 6,
+      "x": 280.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 7,
+      "x": 320.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 8,
+      "x": 360.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 9,
+      "x": 400.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 10,
+      "x": 440.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 11,
+      "x": 480.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 12,
+      "x": 520.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 13,
+      "x": 560.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 14,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 120.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 15,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 160.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 29,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 160.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 30,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 200.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 36,
+      "x": 280.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 200.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 37,
+      "x": 320.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 200.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 38,
+      "x": 360.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 200.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 44,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 200.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 45,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 240.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 50,
+      "x": 240.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 240.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 54,
+      "x": 400.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 240.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 59,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 240.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 60,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 280.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 69,
+      "x": 400.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 280.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 74,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 2,
+      "y": 280.0,
+      "type": 16,
+      "collision": 5
+    },
+    {
+      "radius": 20,
+      "index": 75,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 320.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 80,
+      "x": 240.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 320.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 84,
+      "x": 400.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 320.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 89,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 320.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 90,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 360.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 96,
+      "x": 280.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 360.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 97,
+      "x": 320.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 360.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 98,
+      "x": 360.0,
+      "kind": "grid",
+      "state": 1,
+      "y": 360.0,
+      "type": 2,
+      "collision": 3
+    },
+    {
+      "radius": 20,
+      "index": 104,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 360.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 105,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 400.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 119,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 400.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 120,
+      "x": 40.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 121,
+      "x": 80.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 122,
+      "x": 120.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 123,
+      "x": 160.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 124,
+      "x": 200.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 125,
+      "x": 240.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 126,
+      "x": 280.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 127,
+      "x": 320.0,
+      "kind": "grid",
+      "state": 2,
+      "y": 440.0,
+      "type": 16,
+      "collision": 5
+    },
+    {
+      "radius": 20,
+      "index": 128,
+      "x": 360.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 129,
+      "x": 400.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 130,
+      "x": 440.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 131,
+      "x": 480.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 132,
+      "x": 520.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 133,
+      "x": 560.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    },
+    {
+      "radius": 20,
+      "index": 134,
+      "x": 600.0,
+      "kind": "grid",
+      "state": 0,
+      "y": 440.0,
+      "type": 15,
+      "collision": 4
+    }
+  ],
+  "doors": [
+    {
+      "x": 600.0,
+      "target_index": 83,
+      "open": true,
+      "slot": 2,
+      "y": 280.0,
+      "locked": false,
+      "target_type": 1
+    },
+    {
+      "x": 320.0,
+      "target_index": 95,
+      "open": true,
+      "slot": 3,
+      "y": 440.0,
+      "locked": false,
+      "target_type": 1
+    }
+  ],
+  "session": "fixture:arm1",
+  "run_id": "fixture-run",
+  "room_id": "fixture-room"
+}
