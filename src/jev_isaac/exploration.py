@@ -444,10 +444,11 @@ class FloorNavigator:
     def rearmed(self, state):
         """Keep observed floor knowledge, never outstanding controls, on recovery.
 
-        The controller must authenticate a fresh F8 session and packet receipt
-        age before calling this. A user may have moved to another room while
-        disarmed, so the new visit is rebound from its fresh observation. The
-        previous map is usable only within the exact same run and floor.
+        The controller must authenticate a fresh F8 session, current run/floor
+        and packet receipt age before calling this. A user may have moved to
+        another room while disarmed, so the new visit is rebound from its fresh
+        observation. The previous map is usable only within the exact same run
+        and floor.
         """
         fresh = FloorNavigator(stuck_timeout=self._stuck_timeout,
                                transition_timeout=self._transition_timeout,
@@ -458,7 +459,8 @@ class FloorNavigator:
             fresh._stop = "incomplete floor observation"
             return fresh
         player, _, floor, *_ = parsed
-        if self._identity is None or (state["run_id"], floor["id"], floor.get("dimension")) != self._identity:
+        identity = state["run_id"], floor["id"], floor.get("dimension")
+        if self._identity is not None and identity != self._identity:
             fresh._stop = "floor or run changed"
             return fresh
         if state["frame"] < self._frame:
@@ -466,6 +468,12 @@ class FloorNavigator:
             return fresh
         if not state["enabled"] or state["paused"] or player["dead"]:
             fresh._stop = "recovery requires a live armed observation"
+            return fresh
+        if self._identity is None:
+            # A permitted descent creates a new navigator during the animation.
+            # If control stops before its first playable observation, there is
+            # no map to restore. Bind this authenticated rearm as its first frame.
+            fresh._identity, fresh._frame = identity, state["frame"]
             return fresh
         fresh._identity, fresh._frame = self._identity, self._frame
         fresh._rooms = dict(self._rooms)

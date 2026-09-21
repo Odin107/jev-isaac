@@ -10,6 +10,7 @@ from unittest.mock import patch
 sys.path[:0] = [str(Path(__file__).parent), str(Path(__file__).resolve().parents[1]/"src")]
 from test_controller_arming import ImmediatePool, OLD, NEW, ScheduledSocket
 from test_adventure import ready
+from test_adventure_controller import boss_ready, sequence
 from test_exploration import door
 from test_pickups import pickup
 from test_tnt_regressions import recorded
@@ -32,7 +33,8 @@ def combat():
     return data
 
 
-def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None):
+def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None,
+        continue_floors=False):
     transport = ScheduledSocket(events)
     requests, logs = [], []
     def post(request, timeout):
@@ -53,6 +55,7 @@ def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None
             result = Controller(client.decide, duration=duration, max_calls=max_calls, max_hz=2,
                 max_latency=.5, goal_mode=True, floor_mode=True, adventure_mode=True,
                 jev_player=True, stay_ready=True, startup_guard=True, logger=logs.append,
+                continue_floors=continue_floors,
                 on_navigation_stop=checkpoint).run()
     finally:
         client.close()
@@ -60,6 +63,41 @@ def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None
 
 
 class PlayerControllerTests(unittest.TestCase):
+    def test_rearm_after_descent_before_first_playable_frame_keeps_attempt_alive(self):
+        for arrival_enabled in (True, False):
+            with self.subTest(arrival_enabled=arrival_enabled):
+                first = boss_ready()
+                second = ready()
+                second.update(room_id="floor2-room", floor_advance_permitted=True)
+                second["floor"].update(id="floor-2")
+                events = sequence(first, end=.7333333333)
+                events += [(.75, frame(second, 24, paused=True, enabled=arrival_enabled), OLD),
+                           (.8, frame(second, 24, enabled=False, floor_advance_permitted=False), OLD)]
+                second.update(session="fresh-arm", floor_advance_permitted=False)
+                events += [(when, data, NEW) for when, data, _ in
+                           sequence(second, start=.9, end=1.9, first_frame=24)]
+                def choose(payload):
+                    descent = next((c for c in payload["state"].get("activity_candidates", [])
+                                    if c["kind"] == "descend"), None)
+                    return {"activity": descent["option"] if descent else "wait"}
+                transport, requests, logs, result = run(events, choose, duration=2,
+                                                        continue_floors=True)
+                self.assertEqual(result["stop_reason"], "duration reached")
+                self.assertEqual(result["floors_advanced"], 1)
+                self.assertEqual(result["floor_progress"]["rooms_visited"], 1)
+                self.assertFalse(result["floor_progress"]["boss_cleared"])
+                self.assertTrue(result["floor_history"][0]["progress"]["boss_cleared"])
+                self.assertEqual(result["decisions"], len(requests))
+                self.assertGreaterEqual(len(requests), 2)
+                self.assertAlmostEqual(transport.now, 2, delta=.011)
+                self.assertEqual(result["errors"], 0)
+                self.assertTrue(any(p.get("transition") == "floor" for _, p, _ in transport.sent))
+                resumed = [p for when, p, address in transport.sent if address == NEW and .9 <= when < 2]
+                self.assertTrue(resumed)
+                self.assertTrue(all(p["session"] == "fresh-arm" and p["room_id"] == "floor2-room"
+                                    and p.get("transition") != "floor" for p in resumed))
+                self.assertFalse(any(.75 <= when < .9 for when, _, _ in transport.sent))
+
     def test_hold_without_fire_never_fires_at_the_aligned_enemy(self):
         data = combat()
         transport, requests, logs, result = run([(i/10, frame(data, 30+i*3), OLD) for i in range(8)],
