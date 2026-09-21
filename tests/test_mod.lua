@@ -1499,6 +1499,57 @@ check("pocket item and pickup observations hide unidentified pill effects", func
     assert(observedPickups()[1].name == "#THE_EMPEROR_NAME")
     assert(observationHas('"pocket_name":"#THE_EMPEROR_NAME"'))
 end)
+-- A real Lua userdata catches the serializer mismatch that numeric-only mocks
+-- missed. Its l/h interface mirrors BitSet128; this does not emulate the engine.
+local function withFlagUserdata(fields, callback)
+    local value = assert(io.tmpfile())
+    local original = debug.getmetatable(value)
+    debug.setmetatable(value, {__index = fields})
+    local ok, err = pcall(callback, value)
+    debug.setmetatable(value, original)
+    value:close()
+    assert(ok, err)
+end
+local function assertBombFlagObservation(readFlags, expected)
+    reset()
+    player.GetBombFlags = readFlags
+    local before = #mock.sent
+    tick(1)
+    assert(#mock.sent == before + 1, "optional bomb metadata must not stop observations")
+    local encoded = mock.sent[#mock.sent]:match('"bomb_flags":([^,}]+)')
+    assert(encoded == (expected ~= nil and tostring(expected) or nil), tostring(encoded))
+end
+check("bomb flags preserve numeric zero and modified flags as JSON integers", function()
+    for _, flags in ipairs({0, 0.0, 16, 16.0, 9007199254740991}) do
+        assertBombFlagObservation(function() return flags end, math.floor(flags))
+    end
+end)
+check("BitSet128 bomb userdata exports exact low flags only when the high half is zero", function()
+    for _, flags in ipairs({0, 16, 9007199254740991}) do
+        withFlagUserdata({l = flags, h = 0}, function(value)
+            assertBombFlagObservation(function() return value end, flags)
+        end)
+    end
+end)
+check("unknown bomb flags never become ordinary bombs and still permit observations", function()
+    local invalid = {false, true, "0", {}, {l = 0, h = 0}, -1, .5,
+        math.huge, -math.huge, 0/0, 9007199254740992}
+    for _, flags in ipairs(invalid) do
+        assertBombFlagObservation(function() return flags end, nil)
+    end
+    assertBombFlagObservation(function() return nil end, nil)
+    assertBombFlagObservation(function() error("unsupported optional API") end, nil)
+end)
+check("unsupported BitSet128 bomb fields remain unknown without stopping observations", function()
+    for _, fields in ipairs({{l = 0, h = 1}, {l = 0, h = -1}, {l = 0, h = "0"},
+        {l = 0}, {h = 0}, {l = false, h = 0}, {l = -1, h = 0},
+        {l = .5, h = 0}, {l = 9007199254740992, h = 0}, {l = math.huge, h = 0},
+        function() error("unreadable userdata") end}) do
+        withFlagUserdata(fields, function(value)
+            assertBombFlagObservation(function() return value end, nil)
+        end)
+    end
+end)
 check("inventory observation is cached refreshed on changes bounded and uses real JSON arrays", function()
     reset()
     assert(observationHas('"inventory":[]') and observationHas('"weapon_types":[1]'))

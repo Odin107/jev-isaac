@@ -309,6 +309,21 @@ local function optionalRead(callback)
     return nil
 end
 
+local function observedBombFlags(player)
+    return optionalRead(function()
+        local flags = player:GetBombFlags()
+        -- Repentance can return BitSet128 userdata, which the game's JSON
+        -- encoder silently omits. Never discard its high half or infer zero.
+        if type(flags) == "userdata" then
+            if observedInteger(flags.h, 0, 0) ~= 0 then return nil end
+            flags = flags.l
+        end
+        local value = observedInteger(flags, 0, 9007199254740991)
+        -- Emit an integer even when an older API returns a Lua float such as 0.0.
+        return value and math.floor(value) or nil
+    end)
+end
+
 local function visitedRooms(floor)
     if floor.dimension == nil then return nil end
     return optionalRead(function()
@@ -600,7 +615,7 @@ local function observation()
     playerState.coins = player:GetNumCoins()
     playerState.bombs = player:GetNumBombs()
     playerState.giga_bombs = player:GetNumGigaBombs()
-    playerState.bomb_flags = player:GetBombFlags()
+    playerState.bomb_flags = observedBombFlags(player)
     playerState.unsafe_bomb_trinket = player:HasTrinket(73) or player:HasTrinket(133)
     playerState.keys = player:GetNumKeys()
     playerState.can_pick_red_hearts = player:CanPickRedHearts()

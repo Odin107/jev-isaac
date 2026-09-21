@@ -104,6 +104,11 @@ and waits outside its range for observed destruction. New drops or openings
 require another Jev decision. The existing bomb-to-pickup plan remains available.
 Walls, pits, special rocks, modified bombs and explosive chains are outside this
 bounded planner; absent offers do not imply the game mechanic is impossible.
+The bridge converts numeric bomb flags and representable `BitSet128` low/high
+halves into JSON integers before export. Passing the userdata directly to the
+game's JSON encoder omitted the field and made every ordinary-bomb check fail.
+Unknown, unreadable or unrepresentable flags remain unavailable rather than
+being assumed zero. A missing field still disables the ordinary-bomb planner.
 
 After combat, a stationary ordinary/red fire can leave Isaac within its extra
 navigation buffer. A bounded outward step may leave that buffer while retaining
