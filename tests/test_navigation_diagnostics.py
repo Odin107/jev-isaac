@@ -106,7 +106,7 @@ class ControllerNavigationDiagnosticTests(unittest.TestCase):
                 saved = result["navigation_stop_snapshots"]
                 self.assertEqual(len(saved), 1)
                 self.assertEqual(saved[0]["reason"], reason)
-                should_recover = stay_ready and reason == ROUTE_FAILURE
+                should_recover = stay_ready and reason in (ROUTE_FAILURE, "incomplete floor observation")
                 self.assertEqual(saved[0]["recoverable"], should_recover)
                 self.assertEqual(result["navigation_stops"], int(should_recover))
 
@@ -152,7 +152,7 @@ class ControllerNavigationDiagnosticTests(unittest.TestCase):
     def test_terminal_navigation_stop_also_checkpoints_immediately(self):
         checkpoints = []
         _, _, _, result, _ = run([(0, observed(fault="incomplete floor observation"), OLD)],
-                                on_navigation_stop=checkpoints.append)
+                                on_navigation_stop=checkpoints.append, stay_ready=False)
         self.assertEqual(len(checkpoints), 1)
         self.assertIs(checkpoints[0]["recoverable"], False)
         self.assertEqual(checkpoints[0], result["navigation_stop_snapshots"][0])

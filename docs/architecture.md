@@ -68,6 +68,14 @@ callback alone cannot authorize a pause without the corresponding Jev pulse.
 `last_item_use` and `item_animation` provide observed diagnostics. Teleporting or
 unusually long item effects may still require manual rearming.
 
+Geometry supports 512 total hazards, with a separate 160-entity hazard cap and
+the existing 60,000-byte datagram limit. Large-room grids no longer share the old
+160-cell cutoff. Geometry validation, combat hints, navigation and room-objective
+detection use the same total cap. Truncated state remains unusable for decisions.
+With `--stay-ready`, incomplete observations release control and preserve the
+listener/key until the original deadline; only a fresh F8 session can resume.
+Updated bridges display "Incomplete room data" instead of a route failure.
+
 ## Known limitations
 
 The design policy is to describe the objective, observed state, game mechanics

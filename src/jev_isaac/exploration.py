@@ -16,7 +16,7 @@ import math
 from .combat import _inside, _number, _point
 from .navigation import MAX_NODES, _VECTORS, _axis, _avoid, _clear, _free, _padding_escape, _radius, _steer, _velocity
 from .pickups import PickupCollector, exclusion_boxes, signature, valid_pickups
-from .protocol import valid_visited_rooms
+from .protocol import MAX_HAZARDS, valid_visited_rooms
 
 
 # RoomType and DoorSlot in the Isaac Lua API. The second set of door slots is
@@ -94,7 +94,7 @@ def _validated(state, *, allow_shop=False, allow_secret=False):
         return None
     hazards, enemies, projectiles, doors = (state.get(k) for k in ("hazards", "enemies", "projectiles", "doors"))
     if any(not isinstance(items, list) or len(items) > limit for items, limit in
-           ((hazards, 160), (enemies, 64), (projectiles, 96), (doors, 8))):
+           ((hazards, MAX_HAZARDS), (enemies, 64), (projectiles, 96), (doors, 8))):
         return None
     for item in hazards + enemies + projectiles:
         if not isinstance(item, Mapping) or None in (_point(item), _radius(item, 20), _velocity(item)):

@@ -24,6 +24,7 @@ _RECOVERABLE_NAVIGATION_STOPS = frozenset({
     "room switch approach stalled", "room switch activation timed out",
     "TNT demolition stopped",
     "room objective navigation failed", "local navigation failed", "floor navigation failed",
+    "incomplete floor observation",
 })
 
 _OBSERVATION_BATCH_LIMIT = 64
@@ -446,7 +447,9 @@ class Controller:
                 # Release once. No keepalive may restore floor control while
                 # waiting for a new F8 session, even if old enabled packets arrive.
                 sock.sendto(encode_action(latest, "none", "none", 1, floor_mode=False,
-                                         stop_reason="navigation"), peer)
+                                         stop_reason="observation" if reason == "incomplete floor observation"
+                                         and latest.data.get("capabilities", {}).get("observation_recovery") == 1
+                                         else "navigation"), peer)
                 remaining = max(0, deadline-time.monotonic()) if deadline is not None else self.duration
                 self.log(f"Navigation paused: {reason}. Control released; listener and key remain ready.")
                 self.log(f"Move Isaac manually if needed, then press F8 to rearm. "

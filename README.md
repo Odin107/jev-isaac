@@ -136,5 +136,11 @@ Confirmed item-use animations now release inputs temporarily and resume with
 fresh controls, without treating the animation as a manual pause. Actual pause
 buttons still stop Jev. The controller can remain open with its existing key.
 
+**“Incomplete room data” after entering a large room:** the bridge now supports
+up to 512 hazards, including dense grids of walls, pits and rocks. If an
+observation is still incomplete, player mode releases control and keeps the
+listener and key open until the attempt's limits expire. Resume from a complete
+observed room with F8. Pausing or switching windows does not restart the budget.
+
 This is an independent fan experiment, unaffiliated with the creators of Isaac.
 You need your own game installation and TypeSafe access.

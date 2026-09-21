@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
+from .protocol import MAX_HAZARDS
 
 
 _EPS = 1e-6
@@ -68,7 +69,7 @@ def _path(start, end, obstacles, padding=0.0):
 
 
 def build_combat_context(state, *, target_limit=8):
-    """Return compact, finite facts from at most 64 enemies and 160 grid cells.
+    """Return compact, finite facts from bounded enemies and complete geometry.
 
     Waypoints are at most four direct, unobstructed alignments with the nearest
     eight vulnerable enemies. They are not routes or commands. Empty/malformed
@@ -89,9 +90,9 @@ def build_combat_context(state, *, target_limit=8):
         return {}
 
     raw_hazards = state.get("hazards")
-    complete = isinstance(raw_hazards, list) and len(raw_hazards) <= 160 and not state.get("truncated", False)
+    complete = isinstance(raw_hazards, list) and len(raw_hazards) <= MAX_HAZARDS and not state.get("truncated", False)
     obstacles = []
-    for offset, item in enumerate(raw_hazards[:160] if isinstance(raw_hazards, list) else []):
+    for offset, item in enumerate(raw_hazards[:MAX_HAZARDS] if isinstance(raw_hazards, list) else []):
         if not isinstance(item, Mapping) or item.get("kind") != "grid":
             continue
         point, collision, half = _point(item), item.get("collision"), item.get("radius", 20)

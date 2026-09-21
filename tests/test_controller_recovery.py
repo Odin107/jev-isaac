@@ -265,7 +265,7 @@ class ControllerRecoveryTests(unittest.TestCase):
         self.assertEqual((result["navigation_stops"], result["navigation_rearms"]), (1, 1))
 
     def test_unknown_stop_and_no_stay_ready_still_exit(self):
-        for reason, stay_ready in ((ROUTE_FAILURE, False), ("incomplete floor observation", True),
+        for reason, stay_ready in ((ROUTE_FAILURE, False), ("incomplete floor observation", False),
                                    ("no accessible unexplored rooms", True), ("floor cleared", True),
                                    ("bomb retreat blocked", True)):
             with self.subTest(reason=reason, stay_ready=stay_ready):

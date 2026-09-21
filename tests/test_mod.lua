@@ -401,6 +401,20 @@ check("movement, firing, numeric and boolean input hooks", function()
     tick(1); assert(input(0, 1) == true)
     tick(2); assert(input(0, 1) == false)
 end)
+check("dense large rooms export all 448 grid cells within the packet limit", function()
+    reset()
+    room.GetGridSize = function() return 448 end
+    room.GetGridEntity = function() return {State = 0, GetType = function() return 7 end,
+        GetVariant = function() return 1 end} end
+    room.GetGridCollision = function() return 1 end
+    room.GetGridPosition = function(_, index) return {X = 40 + index % 28 * 40, Y = 120 + math.floor(index / 28) * 40} end
+    tick(1)
+    local payload = mock.sent[#mock.sent]
+    local _, count = payload:gsub('"kind":"grid"', '')
+    assert(count == 448 and #payload <= 60000)
+    assert(payload:find('"truncated":false', 1, true))
+    assert(payload:find('"index":447', 1, true))
+end)
 check("one-frame hold survives until next simulation tick", function()
     reset(); toggle(); queue({hold_frames = 1}); tick(0)
     tick(1); assert(input() == 1)
@@ -1208,6 +1222,22 @@ check("release reason cannot authorize motion or bypass identity and frame check
     mock.incoming = {(action({floor_mode = false, move = "none", shoot = "none", hold_frames = 1,
         stop_reason = "navigation"}):gsub('"stop_reason":"navigation"', '"stop_reason":null'))}
     tick(0); assert(input() == 1)
+end)
+check("observation release explains incomplete state without claiming a blocked route", function()
+    reset(); toggle(); queue({floor_mode = true}); tick(0)
+    queue({floor_mode = false, move = "none", shoot = "none", hold_frames = 1,
+        stop_reason = "observation"}); tick(1)
+    assert(observationHas('"last_stop_reason":"Incomplete room data: F8 retries"'))
+    assert(observationHas('"enabled":false') and input() == nil)
+    for _, changes in ipairs({{move = "left"}, {shoot = "up"}, {floor_mode = true},
+                              {interaction = "active", interaction_id = "pulse"}}) do
+        reset(); toggle()
+        local packet = {floor_mode = false, move = "none", shoot = "none", hold_frames = 1,
+            stop_reason = "observation"}
+        for k,v in pairs(changes) do packet[k] = v end
+        queue(packet); tick(1)
+        assert(transportState().accepted == 0)
+    end
 end)
 check("boss transition deadline cannot be renewed by an update before the next render", function()
     for _, expiresDuringReceive in ipairs({false, true}) do

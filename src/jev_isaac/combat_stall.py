@@ -8,7 +8,7 @@ their own progress watchdog; they bypass this specifically targetless guard.
 from collections.abc import Mapping
 import math
 
-from .protocol import number
+from .protocol import MAX_HAZARDS, number
 
 
 NO_COMBAT_OBJECTIVE = "no observed combat objective"
@@ -29,7 +29,7 @@ def no_living_enemies(state):
     if (not isinstance(truncation, Mapping)
             or any(type(value) is not bool or value for value in truncation.values())):
         return False
-    for field, limit in (("enemies", 64), ("hazards", 160), ("projectiles", 96)):
+    for field, limit in (("enemies", 64), ("hazards", MAX_HAZARDS), ("projectiles", 96)):
         items = state.get(field)
         if (not isinstance(items, list) or len(items) > limit
                 or any(not isinstance(item, Mapping)

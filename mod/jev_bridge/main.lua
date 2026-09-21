@@ -13,7 +13,8 @@ local BOSS_TRANSITION_SECONDS, BOSS_EARLY_FRAMES = 8, 2
 local FLOOR_DESCENT_SECONDS = 10
 local ITEM_ANIMATION_SECONDS, ITEM_ANIMATION_START_FRAMES = 3, 2
 local MAX_PACKETS, MAX_ACTION_BYTES, MAX_OBS_BYTES = 32, 2048, 60000
-local MAX_ENEMIES, MAX_PROJECTILES, MAX_HAZARDS = 64, 96, 160
+local MAX_ENEMIES, MAX_PROJECTILES, MAX_HAZARDS = 64, 96, 512
+local MAX_ENTITY_HAZARDS = 160
 local MAX_PICKUPS, MAX_SWITCHES = 64, 32
 local MAX_INVENTORY, MAX_COLLECTIBLE_ID = 128, 4096
 local MAX_INTERACTIONS, INTERACTION_COOLDOWN = 512, 15
@@ -451,7 +452,7 @@ local function observation()
             if entity.Type == EntityType.ENTITY_MOVABLE_TNT then
                 local item = entityState(entity)
                 item.kind = "tnt"
-                append(hazards, MAX_HAZARDS, "hazards", item)
+                append(hazards, MAX_ENTITY_HAZARDS, "hazards", item)
             elseif entity:ToNPC() and entity:IsActiveEnemy(false)
                 and not entity:HasEntityFlags(EntityFlag.FLAG_FRIENDLY)
                 and not entity:HasEntityFlags(EntityFlag.FLAG_CHARM) then
@@ -507,7 +508,7 @@ local function observation()
                         if type(scale) == "number" and scale == scale and scale >= 0 and scale <= 1000 then item.scale = scale end
                         if type(damage) == "number" and damage == damage and damage >= 0 and damage <= 100000 then item.collision_damage = damage end
                     end
-                    append(hazards, MAX_HAZARDS, "hazards", item)
+                    append(hazards, MAX_ENTITY_HAZARDS, "hazards", item)
                 end
             elseif entity.Type == EntityType.ENTITY_BOMBDROP
                 or entity.Type == EntityType.ENTITY_LASER
@@ -525,7 +526,7 @@ local function observation()
                     item.tear_destructible = (entity.Variant == 0 or entity.Variant == 1)
                         and item.hp ~= nil and item.hp > 0
                 end
-                append(hazards, MAX_HAZARDS, "hazards", item)
+                append(hazards, MAX_ENTITY_HAZARDS, "hazards", item)
             end
         end
     end
@@ -642,7 +643,7 @@ local function observation()
         protocol = 1, type = "observation", session = session, room_id = roomId, run_id = runSession,
         capabilities = {movement_pulses = 1, local_goal_control = 1, floor_control = 1,
             transport_diagnostics = 1, pickup_collection = 1, interaction_control = 1, floor_descent = 1,
-            room_switches = 1, ground_creep = 1, item_animations = 1},
+            room_switches = 1, ground_creep = 1, item_animations = 1, observation_recovery = 1},
         frame = game:GetFrameCount(), enabled = enabled, paused = game:IsPaused(),
         status = status, last_stop_reason = lastStopReason, transport = transport,
         last_item_use = lastItemUse,
@@ -747,7 +748,7 @@ local function parseAction(payload, frame)
     local revoke = data.floor_mode == false and data.move == "none" and data.shoot == "none"
         and data.interaction == "none" and data.hold_frames == 1
     if data.stop_reason ~= nil or payload:find('"stop_reason"%s*:') then
-        if data.stop_reason ~= "navigation" or not revoke
+        if (data.stop_reason ~= "navigation" and data.stop_reason ~= "observation") or not revoke
             or data.move_frames ~= nil or data.move_distance ~= nil
             or payload:find('"move_frames"%s*:') or payload:find('"move_distance"%s*:') then
             return nil, "stop_reason"
@@ -843,7 +844,8 @@ local function readActions(frame)
             if not candidate then rejectTransport(rejection) end
             if candidate and candidate.revoke then
                 acceptTransport(candidate.frame)
-                disarm(candidate.stop_reason == "navigation" and "Route blocked: F8 retries"
+                disarm(candidate.stop_reason == "observation" and "Incomplete room data: F8 retries"
+                    or candidate.stop_reason == "navigation" and "Route blocked: F8 retries"
                     or "Controller released control"); return
             end
             -- Valid commands superseded within this receive batch are neither

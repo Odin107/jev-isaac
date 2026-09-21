@@ -9,6 +9,9 @@ from typing import Any
 MOVES = frozenset(("none", "left", "right", "up", "down", "up_left", "up_right", "down_left", "down_right"))
 SHOTS = frozenset(("none", "left", "right", "up", "down"))
 MAX_DATAGRAM = 60_000
+# Large rooms can contain more than 160 observed walls, pits and rocks.
+# The bridge separately bounds dynamic hazards and the total packet size.
+MAX_HAZARDS = 512
 # Total source-observation age, including inference and any remaining action hold.
 # Game():GetFrameCount advances at 30 Hz, so 33 frames caps this at 1100 ms.
 MAX_FRAME_AGE = 33
@@ -178,7 +181,7 @@ def encode_action(obs: Observation, move: str, shoot: str, hold_frames: int = 6,
             raise ValueError("Invalid floor transition")
         packet["transition"] = transition
     if stop_reason is not None:
-        if (stop_reason != "navigation" or floor_mode is not False
+        if (stop_reason not in ("navigation", "observation") or floor_mode is not False
                 or move != "none" or shoot != "none" or hold_frames != 1
                 or interaction != "none" or transition is not None
                 or move_frames is not None or move_distance is not None):

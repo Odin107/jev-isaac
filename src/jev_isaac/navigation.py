@@ -14,6 +14,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from .combat import _entry, _inside, _number, _point
+from .protocol import MAX_HAZARDS
 
 
 MAX_NODES = 1200
@@ -329,7 +330,7 @@ def compute_action(state, goal_kind, target_id=None, *, fire_direction=None):
         return _IDLE
     hazards, enemies, projectiles = (state.get(k) for k in ("hazards", "enemies", "projectiles"))
     if any(not isinstance(items, list) or len(items) > limit
-           for items, limit in ((hazards, 160), (enemies, 64), (projectiles, 96))):
+           for items, limit in ((hazards, MAX_HAZARDS), (enemies, 64), (projectiles, 96))):
         return _IDLE
     movement_boxes, shot_boxes, threats, recoverable = [], [], [], {}
     phase = (0., 0.)
