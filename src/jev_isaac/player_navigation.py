@@ -25,6 +25,7 @@ class PlayerNavigator(FloorNavigator):
         self._activity_position = None
         self._idle_until = self._idle_frame = 0
         self._player_visit = None
+        self._input_start_frame = 0
         self.player_events = []
         self.activity_failures = []
 
@@ -80,7 +81,17 @@ class PlayerNavigator(FloorNavigator):
 
     @property
     def adventure_options(self):
+        if self._intent is not None and self.allows_independent_fire:
+            return (AdventureCandidate("continue", "continue", self._intent.key, None, {},
+                    "Continue the existing bound activity; update only firing", context=self._intent.context,
+                    details={"activity": self._intent.as_dict()}),)
         return self._offers
+
+    @property
+    def allows_independent_fire(self):
+        return (self._rooms.get(self._current, (None, False))[1]
+                and self._tnt_guard is None and self._tnt is None
+                and (self._intent is None or self._intent.kind not in ("shoot_prop", "demolish_tnt", "bomb_rock")))
 
     @property
     def adventure_stats(self):
@@ -130,6 +141,8 @@ class PlayerNavigator(FloorNavigator):
         choices = []
         self._allow_descend = self.continue_floors and state["room"]["clear"] and state["room"]["type"] == 5
         if state["room"]["clear"]:
+            from .room_inputs import room_input_candidates
+            choices.extend(room_input_candidates(state, parsed))
             choices.extend(candidates(state, rewards_done=True, allow_descend=self._allow_descend, limit=160))
             for door in parsed[-1]:
                 destination = self._aliases.get(door.target_index)
@@ -161,7 +174,7 @@ class PlayerNavigator(FloorNavigator):
         self._offers = tuple({c.key: c for c in choices}.values())[:192]
 
     def accept_adventure(self, key, state, now, **kwargs):
-        selected = next((c for c in self._offers if c.key == key), None)
+        selected = next((c for c in self.adventure_options if c.key == key), None)
         if key is None or key == "wait":
             self._event(state, "selected", "Jev chose to wait")
             self._offers = ()
@@ -174,7 +187,14 @@ class PlayerNavigator(FloorNavigator):
         if (parsed is None or not state["enabled"] or state["paused"] or state["player"]["dead"]
                 or (not state["room"]["clear"] and not no_living_enemies(state))):
             return False
-        if selected.kind == "enter_door":
+        if selected.kind == "continue":
+            return self._intent is not None and self._intent.key == selected.target_id
+        if selected.kind == "move_to":
+            from .room_inputs import room_input_valid
+            if not room_input_valid(state, parsed, selected):
+                return False
+            self._input_start_frame = state["frame"]
+        elif selected.kind == "enter_door":
             d = selected.details
             chosen = _Door(d["slot"], selected.point, d["target_index"], d["target_type"])
             if not state["room"]["clear"] or chosen not in parsed[-1]:
@@ -248,7 +268,18 @@ class PlayerNavigator(FloorNavigator):
                                      status="Local override: emergency projectile avoidance")
         selected = self._intent
         if selected is not None:
-            if selected.kind == "press_switch":
+            if selected.kind == "move_to":
+                from .room_inputs import room_input_move, room_input_valid
+                if not room_input_valid(state, parsed, selected):
+                    return self._done(state, now, "selected input no longer valid", failed=True)
+                elapsed = now-self._activity_started
+                if math.dist(_point(state["player"]), selected.point) <= 5:
+                    return self._done(state, now, "selected room position reached")
+                if elapsed >= 3 or state["frame"]-self._input_start_frame >= 90:
+                    return self._done(state, now, "selected repositioning timed out", failed=True)
+                return ExplorationAction(move=room_input_move(state, parsed, selected.point),
+                                         status="Jev selected: move to room position")
+            elif selected.kind == "press_switch":
                 row = next((r for r in state.get("switches", []) if r["index"] == selected.details["switch_index"]), None)
                 if state["room"]["clear"] or row is not None and _ordinary(row, 3):
                     return self._done(state, now, "selected switch activated")

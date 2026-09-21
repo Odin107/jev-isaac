@@ -10,7 +10,7 @@ import time
 import uuid
 from collections import deque
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from typing import Callable
 
 from .protocol import MAX_DATAGRAM, MAX_FRAME_AGE, Observation, encode_action
@@ -373,6 +373,7 @@ class Controller:
             invalid_streak = 0
             last_brake = None
             current_goal = None
+            room_fire = None
             last_local_dispatch = None
             next_call = started
             armed_at = None
@@ -411,11 +412,13 @@ class Controller:
                 switch_navigator = SwitchNavigator()
 
             def reset_control_epoch():
+                nonlocal room_fire
                 nonlocal epoch, current_goal, pending_ability, last_dispatch, last_local_dispatch
                 nonlocal combat_epoch, combat_started, goal_received_in_epoch, ability_state
                 nonlocal objective_status
                 epoch += 1
                 current_goal = pending_ability = None
+                room_fire = None
                 last_dispatch = last_local_dispatch = None
                 combat_epoch = combat_started = None
                 goal_received_in_epoch = False
@@ -784,12 +787,16 @@ class Controller:
                                                 any(c.get("key") == action.target_id and c in current_offers for c in source_offers))
                                             if bound:
                                                 accepted = explorer.accept_adventure(action.target_id, latest.data, now)
+                                                if self.jev_player and accepted:
+                                                    room_fire = (action.fire_direction, dispatched, source_epoch,
+                                                                 source.identity, address, source.data["player"].get("weapon_type"))
                                             else:
                                                 self.stats.stale_discarded += 1
                                             self.stats.strategic_choices += 1
                                             if self.jev_player:
                                                 self.stats.player_decisions.append({"frame": source.frame, "kind": "activity",
-                                                    "selected": action.target_id or "wait", "accepted": bool(bound and accepted)})
+                                                    "selected": action.target_id or "wait", "fire": action.fire_direction,
+                                                    "accepted": bool(bound and accepted)})
                                                 del self.stats.player_decisions[:-80]
                                                 self.log(f"Jev chose activity: {action.target_id or 'wait'} ({'accepted' if bound and accepted else 'state changed; discarded'}).")
                                             else:
@@ -972,6 +979,14 @@ class Controller:
                                 self.log("Trial ending; no bomb placed without enough retreat time.")
                                 break
                             if time.monotonic()-latest_time <= .15:
+                                if self.jev_player and room_fire is not None and explorer.allows_independent_fire:
+                                    direction, dispatched, fire_epoch, identity, address, weapon = room_fire
+                                    if (epoch == fire_epoch and latest.identity == identity and peer == address
+                                            and now-dispatched <= self.goal_max_age
+                                            and latest.data["player"].get("weapon_type") == weapon):
+                                        local_action = replace(local_action, shoot=direction)
+                                    else:
+                                        room_fire = None
                                 send_local(local_action)
                         strategy_options = (getattr(explorer, "adventure_options", ())
                                             if self.adventure_mode and eligible and (latest.data["room"]["clear"] or player_activity_room) else ())

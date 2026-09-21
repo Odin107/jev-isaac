@@ -67,10 +67,11 @@ class PlayerPolicyTests(unittest.TestCase):
     def test_activity_can_select_ninth_offer_or_wait_without_automatic_exploration(self):
         data = state()
         data["_adventure_options"] = [choice(f"collect:{i}") for i in range(12)]
+        data["room"]["clear"] = True
         decision, request = call(data, {"activity": "action_10"})
         self.assertEqual(decision.target_id, "collect:10")
         self.assertEqual(len(request["state"]["activity_candidates"]), 12)
-        self.assertEqual(set(request["questions"]), {"activity"})
+        self.assertEqual(set(request["questions"]), {"activity", "fire"})
         waiting, _ = call(data, {"activity": "wait"})
         self.assertIsNone(waiting.target_id)
         self.assertNotIn("_adventure_options", request["state"]["observation"])

@@ -20,13 +20,22 @@ class PlayerGoalDecision(GoalDecision):
             raise ValueError("Invalid player firing direction")
 
 
+@dataclass(frozen=True)
+class PlayerActivityDecision(StrategyDecision):
+    fire_direction: str = "none"
+
+    def __post_init__(self):
+        if self.fire_direction not in ("none", "left", "right", "up", "down"):
+            raise ValueError("Invalid activity firing direction")
+
+
 def player_contract(payload, phase):
     payload["state"]["game_context"]["control_contract"] = {
         "decision_kind": phase, "authority": "Jev chooses the activity, destination, target and firing intention.",
         "objective": "Play toward completing the run. Exploration, resource use, risk and timing are Jev's decisions within the available controls.",
         "local_execution": "Pathfinding executes the movement goal; the firing button follows Jev's direction. No independent pickups, room order or puzzle selection.",
         "exceptions": "Fresh immediate collision avoidance may change movement and is reported. Expired or changed-state intent is canceled. A committed explosive retreat finishes before another decision.",
-        "firing": "No automatic or substitute shooting. Combat uses only Jev's explicit cardinal firing direction. A selected shoot_prop or demolish_tnt activity authorizes that target's bounded aimed shots and retreat.",
+        "firing": "Movement/activity and firing are independent choices in the same request. The firing button uses the current weapon. Selected shoot_prop, demolish_tnt and bomb_rock routines own firing/retreat while active; the separate fire answer is ignored for those routines.",
         "limits": "Only offered, implemented actions can execute; missing choices may be a mechanics/geometry limitation. Unknown contents and effects remain unknown.",
     }
 
@@ -55,15 +64,37 @@ class PlayerClient(GoalClient):
                 "The observed room, resources, inventory, controller_context.exploration memory "
                 "and previous outcomes are available as state. Revisiting rooms, skipping rewards "
                 "and descending with unexplored rooms remaining are your decisions. No local policy "
-                "will pick a door or collect a reward if you wait. "
+                "will pick a door or collect a reward if you wait. Waiting here holds the activity; "
+                "the independent fire answer may still authorize shooting. "
                 "A door's appearance/type does not reveal its contents. "
+                "General move_to activities reposition inside the room without collecting or entering a door. "
                 "Pressing a switch does not authorize TNT demolition; select demolition explicitly "
                 "when needed. Destruction does not automatically select the switch afterward. "
                 "Movement and selected prop-shot alignment are executed locally; emergency collision avoidance can intervene. "
-                "Wait means pause briefly without firing, then reconsider fresh state." + CONTEXT_INSTRUCTIONS),
-                "criteria": {"wait": "Wait briefly without choosing an activity or shooting.",
+                "Wait means pause the activity briefly, then reconsider fresh state." + CONTEXT_INSTRUCTIONS),
+                "criteria": {"wait": "Hold the activity; no implied movement, item use or shooting.",
                              **{option: f"Execute the bound activity {key}." for option, key in bindings.items()}}}}
             player_contract(payload, "activity")
+            if len(offered) == 1 and offered[0]["kind"] == "continue":
+                payload["questions"] = {}
+            payload["questions"]["fire"] = {"type": "choice", "instructions": (
+                "Choose the firing button now, independently of the activity choice. You can fire while "
+                "moving, collecting, using an item, entering a door or holding position. The current weapon "
+                "determines the effect; this input does not guarantee a hit or destruction. Inspect observed "
+                "objects, their positions/health, inventory and weapon type. Shots can trigger explosives. "
+                "Coordinates are x right, y down, relative to the CURRENT player position. Observed velocity "
+                "can deflect tears; do not assume the parallel activity answer or a future position. "
+                "If shoot_prop, demolish_tnt or bomb_rock is executing, that selected routine owns firing "
+                "and this answer is ignored until it finishes. Consecutive fresh equal directions keep the "
+                "button held; none releases it, including for charge/release weapons. While a bound activity "
+                "continues, fire-only requests update aim without restarting its movement. " + CONTEXT_INSTRUCTIONS),
+                "criteria": {"none": "Release firing input.", "left": "Hold firing toward smaller x.",
+                             "right": "Hold firing toward larger x.", "up": "Hold firing toward smaller y.",
+                             "down": "Hold firing toward larger y."}}
+            if not clean["room"]["clear"]:
+                # Unfinished room puzzles retain their selected demolition
+                # contract, including its committed explosive retreat.
+                payload["questions"].pop("fire")
         else:
             targets = _candidates(clean, limit=64)
             payload["state"]["combat_context"] = build_combat_context(clean, target_limit=64)
@@ -148,8 +179,9 @@ class PlayerClient(GoalClient):
             raise JevResponseError("Invalid Jev player decision", latency_ms=elapsed) from None
         usage = {k: usage[k] for k in ("input_tokens", "output_tokens")}
         if offered:
-            return StrategyDecision("adventure", bindings.get(choices["activity"]), elapsed,
-                                    model, usage, tuple(corrections))
+            target = "continue" if offered[0]["kind"] == "continue" else bindings.get(choices["activity"])
+            return PlayerActivityDecision("adventure", target, elapsed,
+                                          model, usage, tuple(corrections), choices.get("fire", "none"))
         choice = choices["goal"]
         return PlayerGoalDecision("engage" if choice in bindings else choice, bindings.get(choice),
                                   elapsed, model, usage, tuple(corrections),

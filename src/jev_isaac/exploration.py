@@ -179,7 +179,19 @@ def _point_waypoint(start, target, bounds, boxes, phase):
     return points[route[-1]]
 
 
-def _room_geometry(state, radius, door=None, pickup_target=None, include_npcs=True):
+def _stationary_live_fire(item):
+    return (item.get("kind") == "fire" and item.get("type") == 33
+            and type(item.get("variant")) is int and item["variant"] in (0, 1)
+            and _number(item.get("hp")) and item["hp"] > 0
+            and _number(item.get("max_hp")) and item["max_hp"] >= item["hp"]
+            and _number(item.get("radius")) and item["radius"] > 0
+            and _number(item.get("vx")) and _number(item.get("vy"))
+            and item.get("tear_destructible") is True
+            and _velocity(item) == (0., 0.))
+
+
+def _room_geometry(state, radius, door=None, pickup_target=None, include_npcs=True,
+                   fire_recovery=False):
     """The same hazards and pickup exclusions protect every clear-room route."""
     boxes, roomy_boxes, rocks, phase = [], [], {}, (0., 0.)
     for item in state["hazards"]:
@@ -195,7 +207,9 @@ def _room_geometry(state, radius, door=None, pickup_target=None, include_npcs=Tr
                 continue
             padding = half+radius
         else:
-            padding = half+radius+8
+            # Only the outward recovery helper uses the inner buffer. Normal
+            # routes retain the full eight-unit clearance from every fire.
+            padding = half+radius+(2 if fire_recovery and _stationary_live_fire(item) else 8)
         box = (x-padding, y-padding, x+padding, y+padding)
         ordinary_rock = item["kind"] == "grid" and item.get("type") == 2 and item["collision"] == 3
         ordinary_poop = (item["kind"] == "grid" and item.get("type") == 14
@@ -234,6 +248,43 @@ def _room_geometry(state, radius, door=None, pickup_target=None, include_npcs=Tr
         # immediately overtake a route along the previous envelope's edge.
         roomy_boxes.append((box[0] - 12, box[1] - 12, box[2] + 12, box[3] + 12))
     return boxes, roomy_boxes, rocks, phase
+
+
+def _fire_padding_escape(state, parsed, door=None, pickup_target=None):
+    """Leave a live fire's extra margin without entering its contact envelope."""
+    _, _, _, start, radius, velocity, bounds, _ = parsed
+    overlaps = []
+    for item in state["hazards"]:
+        if not _stationary_live_fire(item):
+            continue
+        x, y = _point(item)
+        half = _radius(item, 20)+radius+8
+        if not _free(start, [(x-half, y-half, x+half, y+half)]):
+            overlaps.append((x, y))
+    if not overlaps or not _inside(start, bounds):
+        return None
+    boxes, _, _, _ = _room_geometry(state, radius, door, pickup_target)
+    inner, _, _, _ = _room_geometry(state, radius, door, pickup_target, fire_recovery=True)
+    # Keep the entire player radius plus two units outside fire contact, and
+    # retain all walls, pickups, other hazards and live NPCs unchanged.
+    if not _free(start, inner):
+        return None
+    coast = start[0]+velocity[0]*2, start[1]+velocity[1]*2
+    if (not _inside(coast, bounds) or not _clear(start, coast, inner)
+            or any((start[0]-x)*velocity[0]+(start[1]-y)*velocity[1] < -1e-6
+                   for x, y in overlaps)):
+        return None
+    choices = {}
+    for name, vector in _VECTORS.items():
+        if name == "none" or any((start[0]-x)*vector[0]+(start[1]-y)*vector[1] <= 0
+                                 for x, y in overlaps):
+            continue
+        end = start[0]+vector[0]*24, start[1]+vector[1]*24
+        drift_end = end[0]+velocity[0]*2, end[1]+velocity[1]*2
+        if all(_inside(point, bounds) and _free(point, boxes) and _clear(start, point, inner)
+               and _clear(coast, point, inner) for point in (end, drift_end)):
+            choices[name] = min(math.dist(end, fire) for fire in overlaps)
+    return max(choices, key=choices.get) if choices else None
 
 
 def _npc_escape(state, parsed, door=None, pickup_target=None):
@@ -296,6 +347,8 @@ def _pickup_move(state, parsed, pickup):
         return None
     if not _free(start, boxes):
         escape = _padding_escape(start, velocity, radius, bounds, boxes, rocks)
+        if escape is None:
+            escape = _fire_padding_escape(state, parsed, pickup_target=signature(pickup))
         return escape if escape is not None else _npc_escape(state, parsed, pickup_target=signature(pickup))
     target = _point(pickup)
     waypoint = _point_waypoint(start, target, bounds, roomy_boxes, phase)
@@ -319,6 +372,8 @@ def _door_move(state, parsed, door):
     boxes, roomy_boxes, rocks, phase = _room_geometry(state, radius, door=door)
     if not _free(start, boxes):
         escape = _padding_escape(start, velocity, radius, bounds, boxes, rocks)
+        if escape is None:
+            escape = _fire_padding_escape(state, parsed, door=door)
         return escape if escape is not None else _npc_escape(state, parsed, door=door)
     along = (start[0]-approach[0])*vector[0]+(start[1]-approach[1])*vector[1]
     across = abs((start[0]-door.point[0])*vector[1]-(start[1]-door.point[1])*vector[0])

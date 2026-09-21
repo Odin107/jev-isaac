@@ -34,6 +34,27 @@ can override movement and are logged. Local execution preserves the selected
 cardinal firing button. A blocked selected activity returns to Jev rather than
 automatically choosing a different room or pickup.
 
+Cleared rooms also offer general `move_to` positions and an independent `fire`
+question in the same request as activity selection. Jev can move and fire, or hold
+the activity and fire, simultaneously. Repositioning does not collect pickups or
+cross doors. During an ongoing activity, fire-only requests refresh aim without
+restarting the selected route. Equal consecutive directions can keep a button
+held; `none` releases it. The same freshness, request-rate and budget limits apply.
+Selected prop shooting and TNT/bomb routines own firing while they execute, so
+independent firing cannot disrupt their aimed shots or committed retreat.
+
+Firing uses the observed current weapon, including Technology, without promising
+a hit or assuming ordinary-tear physics. Weapon changes invalidate a previous
+firing choice. Charge/release mechanics and synergies are not fully modeled.
+Object-specific actions remain useful shortcuts, but their narrower weapon
+support no longer removes all firing choices in cleared rooms.
+
+After combat, a stationary ordinary/red fire can leave Isaac within its extra
+navigation buffer. A bounded outward step may leave that buffer while retaining
+the player radius plus two units around the observed fire body. Normal routes
+retain the larger buffer; contact overlap, inward momentum, unobserved/special
+fire behavior and all other obstacle exclusions still block this recovery.
+
 ## Known limitations
 
 The design policy is to describe the objective, observed state, game mechanics
@@ -49,6 +70,9 @@ pathfinding, immediate dodges and implemented-action limits still apply.
 - **Pathfinding:** conservative player/obstacle padding can falsely block
   available routes. A shallow overlap near a type-3 rock remains an unresolved
   example. Earlier TNT and door fixes do not solve every layout.
+- **Defensive movement:** local emergency dodging can hold near a wall while
+  Jev is still choosing to engage an enemy. Its short threat prediction does not
+  guarantee an escape from crowding; these movements are logged as overrides.
 - **Exploration:** Jev can repeatedly revisit cleared rooms. Known exits and
   recent route outcomes are provided, but no local policy forces exploration.
 - **Secret rooms:** observed open secret and supersecret doors are supported.

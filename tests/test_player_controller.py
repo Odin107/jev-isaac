@@ -46,7 +46,7 @@ def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None
     class Pool(ImmediatePool):
         def submit(self, function, *args):
             result = function(*args)
-            due = transport.now+delay
+            due = transport.now+(delay(len(requests)) if callable(delay) else delay)
             return SimpleNamespace(done=lambda: transport.now >= due, result=lambda: result)
     try:
         with patch("jev_isaac.controller.socket.socket", return_value=transport), \
@@ -130,7 +130,7 @@ class PlayerControllerTests(unittest.TestCase):
         transport, requests, _, result = run([(i/10, frame(data, 30+i*3), OLD) for i in range(14)],
                                              {"activity": "wait"})
         self.assertEqual(len(requests), 1)
-        self.assertEqual(set(requests[0]["questions"]), {"activity"})
+        self.assertEqual(set(requests[0]["questions"]), {"activity", "fire"})
         self.assertTrue(all((p["move"], p["shoot"]) == ("none", "none") for _, p, _ in transport.sent))
         self.assertEqual(result["pickup_progress"]["attempts"], 0)
         self.assertEqual(result["player_decisions"][0]["selected"], "wait")
@@ -139,6 +139,8 @@ class PlayerControllerTests(unittest.TestCase):
         data = ready()
         data["doors"] = [door(0, 83), door(2, 85, kind=5)]
         def choose(payload):
+            if "activity" not in payload["questions"]:
+                return {"fire": "none"}
             selected = next(c for c in payload["state"]["activity_candidates"] if c["key"] == "enter:2:85")
             return {"activity": selected["option"]}
         transport, _, _, result = run([(i/10, frame(data, 30+i*3), OLD) for i in range(11)], choose)

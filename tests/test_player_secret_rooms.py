@@ -69,6 +69,8 @@ class SecretRoomTests(unittest.TestCase):
     def test_actual_controller_requests_activity_in_recorded_secret_room(self):
         data = recorded()
         def choose(payload):
+            if 'activity' not in payload['questions']:
+                return {'fire': 'none'}
             choice = next(c for c in payload['state']['activity_candidates'] if c['key'] == 'enter:2:70')
             return {'activity': choice['option']}
         transport, requests, _, result = run([(i/10, frame(data, data['frame']+i*3), OLD) for i in range(11)], choose)

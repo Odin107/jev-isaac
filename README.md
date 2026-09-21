@@ -20,6 +20,7 @@ run completion is still unproven. See [the milestone](docs/first-boss.md).
 | --- | --- |
 | Engage an enemy, hold position or evade | Pathfinding and movement toward the chosen intent |
 | Fire left, right, up, down or not at all | The exact chosen firing button |
+| Reposition within a cleared room while choosing fire independently | Movement to the chosen position and the current firing button together |
 | Which supported door to enter | Movement through that door |
 | Which supplies, items or purchases to take | Eligibility checks and the selected interaction |
 | Whether to try an unidentified pill | A bounded use of that pill, without revealing its effect first |
