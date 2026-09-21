@@ -1,7 +1,7 @@
 """Small, local grounded navigator for ordinary tears in one observed room.
 
-Jev chooses a target or an evade/hold goal. This module chooses only the next
-direction from the current observation, with no action queue or model calls.
+Jev chooses a target to engage/back away from, or an evade/hold goal. This module
+chooses only the next direction from the current observation, with no action queue or model calls.
 Grid cells are conservative squares; flight, spectral tears, beam shapes and
 unobserved room geometry are deliberately outside this starter controller.
 """
@@ -189,6 +189,45 @@ def _steer(start, waypoint, velocity, bounds, boxes, deadband=_DEADBAND, drift_f
     return "none"
 
 
+def _back_off_move(start, target, player, velocity, bounds, movement_boxes, shot_boxes):
+    """A checked retreat toward a farther firing lane, never an inward detour.
+
+    This is an ordinary-tear geometry estimate, not a weapon trajectory model.
+    Unknown/special weapons retain the existing 220-unit conservative envelope;
+    a shorter observed ordinary-tear range tightens it. Immediate danger is
+    handled independently by the caller's usual collision avoidance.
+    """
+    maximum = 220.0
+    tear_range = player.get("tear_range")
+    if player.get("weapon_type", 1) == 1 and _number(tear_range) and tear_range > 0:
+        maximum = min(maximum, max(0.0, tear_range-20.0))
+    separation = math.dist(start, target[:2])
+    if maximum < 60 or separation >= maximum-2:
+        return "none"
+    outward = start[0]-target[0], start[1]-target[1]
+    for step in (40.0, 24.0, 12.0):
+        distance = min(maximum, max(60.0, separation+step))
+        positions = [(target[0]+dx*distance, target[1]+dy*distance)
+                     for dx, dy in ((-1., 0.), (1., 0.), (0., -1.), (0., 1.))]
+        for point in sorted(positions, key=lambda p: math.dist(start, p)):
+            delta = point[0]-start[0], point[1]-start[1]
+            # Squared separation is nondecreasing along this entire segment.
+            if (delta[0]*outward[0]+delta[1]*outward[1] < -1e-6
+                    or not _inside(point, bounds) or not _free(point, movement_boxes)
+                    or not _clear(start, point, movement_boxes)
+                    or _shot(point, target, shot_boxes) == "none"):
+                continue
+            move = _steer(start, point, velocity, bounds, movement_boxes, deadband=2.0)
+            vector = _VECTORS[move]
+            end = start[0]+vector[0]*12, start[1]+vector[1]*12
+            # Diagonal button quantization must preserve the retreat too.
+            if (move != "none" and vector[0]*outward[0]+vector[1]*outward[1] >= -1e-6
+                    and math.dist(end, target[:2]) <= maximum
+                    and _inside(end, bounds) and _clear(start, end, movement_boxes)):
+                return move
+    return "none"
+
+
 def _recovery_options(start, velocity, radius, bounds, boxes, recoverable):
     """Legal exits from shallow conservative rock/poop padding overlap.
 
@@ -303,14 +342,16 @@ def compute_action(state, goal_kind, target_id=None, *, fire_direction=None):
     targets may shoot at a freshly observed clear cardinal target, without
     pursuing it or altering their defensive movement. An engage target still
     determines pursuit and gets first preference when its firing lane is clear.
+    Back-off movement seeks more separation from its bound target; explicit
+    firing input remains independent even when retreat is blocked.
     The caller owns goal expiry, observation age, room identity and output timing.
     This function never mutates observations or keeps an obsolete action queue.
     """
-    if not isinstance(state, Mapping) or goal_kind not in ("engage", "evade", "hold"):
+    if not isinstance(state, Mapping) or goal_kind not in ("engage", "back_off", "evade", "hold"):
         return _IDLE
     if fire_direction is not None and fire_direction not in ("none", "left", "right", "up", "down"):
         return _IDLE
-    if goal_kind == "engage" and not _valid_enemy_id(target_id):
+    if goal_kind in ("engage", "back_off") and not _valid_enemy_id(target_id):
         return _IDLE
     player, room = state.get("player"), state.get("room")
     if (not isinstance(player, Mapping) or not isinstance(room, Mapping)
@@ -378,7 +419,7 @@ def compute_action(state, goal_kind, target_id=None, *, fire_direction=None):
             ident = item.get("id")
             if (_valid_enemy_id(ident) and enemy_ids[ident] == 1
                     and item.get("dead") is not True and item.get("vulnerable") is True):
-                if goal_kind == "engage" and ident == target_id:
+                if goal_kind in ("engage", "back_off") and ident == target_id:
                     target = (*point, size)
                 direction = _shot(start, (*point, size), shot_boxes)
                 if direction != "none":
@@ -392,6 +433,8 @@ def compute_action(state, goal_kind, target_id=None, *, fire_direction=None):
         if waypoint is not None and _shot(waypoint, target, shot_boxes) == "none":
             deadband = 2.0  # Do not stop short of a corner needed by the route.
         move = _steer(start, waypoint, velocity, bounds, movement_boxes, deadband)
+    elif goal_kind == "back_off" and target is not None:
+        move = _back_off_move(start, target, player, velocity, bounds, movement_boxes, shot_boxes)
     intended, override = move, None
     recovery = _recovery_options(start, velocity, radius, bounds, movement_boxes, recoverable)
     if recovery is not None:

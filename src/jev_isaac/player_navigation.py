@@ -1,6 +1,7 @@
 """Execute Jev-selected activities; never choose the next room or pickup."""
 import copy
 import math
+from dataclasses import replace
 
 from .adventure import AdventureCandidate, _context, candidates, candidate_valid
 from .combat import _number, _point
@@ -28,6 +29,26 @@ class PlayerNavigator(FloorNavigator):
         self._input_start_frame = 0
         self.player_events = []
         self.activity_failures = []
+        self._reward_signature = None
+        self._reward_was_clear = False
+        self._room_choice_revision = 0
+        self._reward_wait_started_frame = None
+        self._reward_ready = True
+
+    @staticmethod
+    def _reward_snapshot(state):
+        # Identity/readiness changes matter to the available choices. Bouncing
+        # positions, velocity and a still-positive countdown do not.
+        if not isinstance(state.get("pickups"), list):
+            return None  # Optional missing data does not prove an empty room.
+        return (state["player"].get("can_pickup_items"), tuple(sorted(
+            (p["id"], p["variant"], p["subtype"], p["price"], p["shop_item"],
+             p["options_index"], p["collectible_kind"], p["wait"] == 0)
+            for p in state.get("pickups", []))))
+
+    def _waiting_for_rewards(self, state):
+        return (not self._reward_ready and self._reward_wait_started_frame is not None
+                and state["frame"]-self._reward_wait_started_frame < 90)
 
     def _event(self, state, event, reason, candidate=None, *, origin_index=None):
         candidate = candidate or self._intent
@@ -67,7 +88,8 @@ class PlayerNavigator(FloorNavigator):
         if self._stop or not state["enabled"] or state["paused"] or state["player"]["dead"]:
             return
         visit = (state["run_id"], state["room_id"])
-        if self._player_visit != visit:
+        new_visit = self._player_visit != visit
+        if new_visit:
             if previous is not None:
                 self._event(state, "finished", "observed room transition", previous, origin_index=previous_index)
             self._offers, self._intent, self._tnt = (), None, None
@@ -75,6 +97,39 @@ class PlayerNavigator(FloorNavigator):
             self._player_visit = visit
             self._idle_until = 0
             self._idle_frame = state["frame"]+18
+            self._reward_signature = None
+            self._reward_wait_started_frame = None
+            self._reward_ready = True
+        snapshot = self._reward_snapshot(state)
+        changed_rewards = (not new_visit and snapshot is not None
+                           and snapshot != self._reward_signature)
+        just_cleared = not new_visit and state["room"]["clear"] and not self._reward_was_clear
+        if new_visit or changed_rewards or just_cleared:
+            self._room_choice_revision += 1
+            self._offers = ()
+        if state["room"]["clear"] and (changed_rewards or just_cleared):
+            self._idle_frame = max(self._idle_frame, state["frame"]+(18 if just_cleared else 12))
+            selected = self._intent
+            departure = selected is not None and selected.kind in (
+                "enter_door", "unlock_door", "descend", "enter_curse", "leave_curse")
+            committed = (selected is not None and (
+                selected.kind == "descend" and self.descent_requested
+                or selected.kind in ("enter_curse", "leave_curse")
+                and self._adventure.plan is selected and self._adventure.phase == "crossing"))
+            if departure and not committed:
+                self._event(state, "canceled", "room rewards changed; Jev needs a fresh departure choice")
+                self.cancel_intent()
+        self._reward_was_clear = state["room"]["clear"]
+        if snapshot is not None:
+            self._reward_signature = snapshot
+            remaining = [p for p in state["pickups"]
+                         if not (p["variant"] in (50, 60, 100) and p["subtype"] == 0)]
+            self._reward_ready = (state["player"].get("can_pickup_items") is not False
+                                  and all(p["wait"] == 0 for p in remaining))
+        if self._reward_ready or not state["room"]["clear"]:
+            self._reward_wait_started_frame = None
+        elif self._reward_wait_started_frame is None:
+            self._reward_wait_started_frame = state["frame"]
         if not state["room"]["clear"] and not no_living_enemies(state) and self._intent is not None:
             self._event(state, "canceled", "combat resumed; Jev needs a fresh combat choice")
             self.cancel_intent()
@@ -84,7 +139,8 @@ class PlayerNavigator(FloorNavigator):
         if self._intent is not None and self.allows_independent_fire:
             return (AdventureCandidate("continue", "continue", self._intent.key, None, {},
                     "Continue the existing bound activity; update only firing", context=self._intent.context,
-                    details={"activity": self._intent.as_dict()}),)
+                    details={"activity": self._intent.as_dict(),
+                             "room_choice_revision": self._room_choice_revision}),)
         return self._offers
 
     @property
@@ -110,6 +166,14 @@ class PlayerNavigator(FloorNavigator):
             and e["reason"] == "observed room transition" and e["target_index"] is not None][-12:]
         context["room_transition_scope"] = "Recent confirmed crossings retained on this floor, oldest first; not planned moves or an instruction to repeat them. Manual moves while disarmed are not recorded."
         context["secret_rooms"] = "Observed open secret and supersecret doors can be selected. Unopened hidden entrances are not search/bomb candidates."
+        context["reward_observation"] = {
+            "choice_revision": self._room_choice_revision,
+            "settling_until_frame": self._idle_frame,
+            "pickups_ready": self._reward_ready,
+            "readiness_wait_limit_frames": 90,
+            "readiness_wait_expired": (not self._reward_ready and self._reward_wait_started_frame is not None
+                                        and self._frame-self._reward_wait_started_frame >= 90),
+            "scope": "Wait briefly after room clear and observed reward changes so late drops can appear. Unready pickups can still be unavailable after the bounded wait; Jev chooses whether to wait or leave."}
         return context
 
     def _puzzle_offers(self, state, parsed):
@@ -195,9 +259,14 @@ class PlayerNavigator(FloorNavigator):
         # Keep model waiting explicit, including a room with no supported action.
         choices.append(AdventureCandidate("wait", "wait", "wait", None, {},
                                           "Wait briefly, then reconsider", context=_context(state)))
-        self._offers = tuple({c.key: c for c in choices}.values())[:192]
+        self._offers = tuple(replace(c, details=dict(c.details,
+            room_choice_revision=self._room_choice_revision))
+            for c in {c.key: c for c in choices}.values())[:192]
 
     def accept_adventure(self, key, state, now, **kwargs):
+        self.observe(state)
+        if self._stop:
+            return False
         selected = next((c for c in self.adventure_options if c.key == key), None)
         if key is None or key == "wait":
             self._event(state, "selected", "Jev chose to wait")
@@ -341,6 +410,8 @@ class PlayerNavigator(FloorNavigator):
             return action
         if now < self._idle_until or state["frame"] < self._idle_frame:
             return ExplorationAction(status="waiting for Jev-selected pause or observed effects")
+        if state["room"]["clear"] and self._waiting_for_rewards(state):
+            return ExplorationAction(status="waiting for observed pickup animation or readiness")
         if any(h["kind"] in ("bomb", "laser") for h in state["hazards"]):
             return ExplorationAction(status="Local override: waiting for an explosive or laser hazard")
         if not self._offers:

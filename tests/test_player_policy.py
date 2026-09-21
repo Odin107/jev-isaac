@@ -82,7 +82,7 @@ class PlayerPolicyTests(unittest.TestCase):
     def test_all_observed_vulnerable_targets_are_offered_beyond_the_old_eight(self):
         data = state([enemy(f"enemy-{i:02}", x=140+i*10) for i in range(20)])
         decision, request = call(data, {"goal": "enemy_19", "fire": "none"})
-        self.assertEqual(len(request["state"]["goal_candidates"]), 20)
+        self.assertEqual(len(request["state"]["goal_candidates"]), 40)
         self.assertEqual(decision.target_id, "enemy-19")
         self.assertEqual(decision.fire_direction, "none")
 

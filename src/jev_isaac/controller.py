@@ -819,7 +819,7 @@ class Controller:
                                             action = None
                                         if action is None:
                                             pass
-                                        elif action.kind not in {"engage", "evade", "hold"}:
+                                        elif action.kind not in {"engage", "back_off", "evade", "hold"}:
                                             raise ValueError("Unknown local control goal")
                                         else:
                                             current_goal = (action, dispatched, source_epoch, source.identity, address)

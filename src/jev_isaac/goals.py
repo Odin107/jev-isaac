@@ -59,10 +59,11 @@ class GoalDecision:
     choice_corrections: tuple[Mapping[str, Any], ...] = ()
 
     def __post_init__(self):
-        if self.kind not in {"engage", "evade", "hold"}:
+        if self.kind not in {"engage", "back_off", "evade", "hold"}:
             raise ValueError("Unknown tactical goal.")
-        if ((self.kind == "engage" and not _valid_id(self.target_id))
-                or (self.kind != "engage" and self.target_id is not None)):
+        targeted = self.kind in {"engage", "back_off"}
+        if ((targeted and not _valid_id(self.target_id))
+                or (not targeted and self.target_id is not None)):
             raise ValueError("The tactical goal has an invalid target binding.")
 
 

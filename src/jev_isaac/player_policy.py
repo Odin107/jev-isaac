@@ -111,15 +111,26 @@ class PlayerClient(GoalClient):
                 # contract, including its committed explosive retreat.
                 payload["questions"].pop("fire")
         else:
-            targets = _candidates(clean, limit=64)
+            targets = _candidates(payload["state"]["observation"], limit=64)
             payload["state"]["combat_context"] = build_combat_context(clean, target_limit=64)
             payload["state"]["firing_now"] = current_firing_view(payload["state"]["combat_context"])
-            bindings = {v["option"]: v["id"] for v in targets}
-            payload["state"]["goal_candidates"] = targets
+            goals = [dict(target, kind="engage") for target in targets]
+            goals.extend({"option": f"back_off_{target['option']}", "id": target["id"],
+                          "kind": "back_off"} for target in targets)
+            bindings = {v["option"]: v["id"] for v in goals}
+            goal_kinds = {v["option"]: v["kind"] for v in goals}
+            payload["state"]["goal_candidates"] = goals
             payload["questions"] = {
                 "goal": {"type": "choice", "instructions": (
                     "Choose your movement intention in The Binding of Isaac: engage a listed enemy "
-                    "to seek a clear firing position, evade threats, or hold position. You own the "
+                    "to seek a clear firing position, back off from a listed enemy to try shooting from "
+                    "farther away, evade threats, or hold position. A back_off choice takes a directly "
+                    "checked retreat toward a farther cardinal firing position, without an inward detour. "
+                    "The executor uses at most 220 world units of separation, reduced to observed "
+                    "ordinary-tear range minus 20 when shorter. This is approximate geometry for "
+                    "unknown or special weapons, not a guaranteed shot range. It holds movement if "
+                    "the selected target disappears or no safe farther position is available, except "
+                    "for immediate collision avoidance or recovery from an obstacle's safety margin. You own the "
                     "target; the local executor will not pursue a different one. Emergency collision "
                     "avoidance may change a short movement. This answer does NOT authorize shooting; "
                     "the independent fire answer does. Obstacles, health and threat motion are observed state. "
@@ -127,6 +138,9 @@ class PlayerClient(GoalClient):
                     "criteria": {"hold": "Hold position, subject to immediate collision avoidance; no implied shooting.",
                                  "evade": "Move away from nearby threats; no implied shooting.",
                                  **{o: f"Engage observed enemy {ident}; seek alignment with that target."
+                                    if goal_kinds[o] == "engage" else
+                                    f"Back off from observed enemy {ident}; seek a farther firing position "
+                                    "by a direct checked retreat within the stated distance limits. No implied shooting."
                                     for o, ident in bindings.items()}}},
                 "fire": {"type": "choice", "instructions": (
                     "Choose your firing input now to play toward completing the run. You own aiming. "
@@ -139,7 +153,7 @@ class PlayerClient(GoalClient):
                     "Past `observation.control` and controller memory describe previous inputs, not a request "
                     "to repeat them. `combat_context.firing_positions` are hypothetical future positions; their shoot "
                     "directions do not describe shots from here. "
-                    "You can shoot while moving, holding or evading. The movement answer is independent and "
+                    "You can shoot while moving, backing off, holding or evading. The movement answer is independent and "
                     "unknown to this question. Use observed player vx/vy: momentum can deflect tears diagonally "
                     "and persists after movement release; exact inheritance is uncalibrated. "
                     "Equal consecutive directions hold the button; none releases it, including for charge/release "
@@ -200,7 +214,7 @@ class PlayerClient(GoalClient):
                                           model, usage, tuple(corrections), choices.get("fire", "none"),
                                           fire_judgment=fire_judgment)
         choice = choices["goal"]
-        return PlayerGoalDecision("engage" if choice in bindings else choice, bindings.get(choice),
+        return PlayerGoalDecision(goal_kinds.get(choice, choice), bindings.get(choice),
                                   elapsed, model, usage, tuple(corrections),
                                   choices["fire"], ability_bindings.get(choices.get("ability")),
                                   fire_judgment=fire_judgment)

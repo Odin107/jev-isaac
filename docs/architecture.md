@@ -44,6 +44,18 @@ current position; potential future firing positions are labeled separately.
 Jev is told that movement momentum can bend tears across the firing axis.
 Actual tear-velocity inheritance has not been calibrated.
 
+Each player-mode enemy target offers both `engage` and `back_off`. Backing away
+seeks a farther cardinal firing position for that same enemy, while Jev still
+chooses the firing button independently. The executor checks a direct retreat
+against room bounds and obstacles; it does not take an inward detour or pursue
+a replacement target. It uses the existing conservative 220-unit shooting
+envelope, tightened by a shorter observed ordinary-tear range with a 20-unit
+margin. Special-weapon trajectories remain unmodeled. If a farther position is
+blocked or beyond that envelope, intended movement holds; immediate collision
+avoidance and obstacle-margin recovery retain their usual overrides. These
+geometry checks do not promise a hit. Fresh goals, expiry and changed-target
+checks apply just as for engaging; the legacy goal-only policy is unchanged.
+
 Combat firing also receives a compact `firing_now` view for each button: enemies
 on that side, enemies aligned with the current straight firing lane, and aligned
 enemies without observed solid-grid blockers. It summarizes current geometry,
@@ -71,6 +83,19 @@ The model also receives up to twelve confirmed room crossings from its bounded
 activity history and per-door completed-entry counts. These are observations,
 not revisit bans or a preferred route; every otherwise supported door remains
 selectable. Same-floor recovery retains memory; a new floor starts fresh.
+
+Player mode pauses new room choices for 18 simulation frames after combat clears
+and 12 frames after observed pickup identities or readiness change. Pickup
+animation/readiness can extend the pause for up to 90 simulation frames per
+continuous unready period; the limit avoids waiting forever for an unavailable
+pickup. A changed reward list invalidates cached choices immediately and versions
+the rebuilt candidates, so an earlier door reply cannot become valid again just
+because that door still exists. An uncommitted departure is reconsidered if new
+rewards appear. Already committed explosive retreats, curse-door crossings and
+floor transitions finish their existing contracts. The timing window does not
+prove that every future drop has appeared; Jev sees the refreshed observed
+choices and remains free to leave rewards behind. Pickup motion and a still
+positive countdown do not continually restart the settling pause.
 
 Cleared rooms also offer general `move_to` positions and an independent `fire`
 question in the same request as activity selection. Jev can move and fire, or hold

@@ -18,7 +18,7 @@ run completion is still unproven. See [the milestone](docs/first-boss.md).
 
 | Jev decides | Local code executes |
 | --- | --- |
-| Engage an enemy, hold position or evade | Pathfinding and movement toward the chosen intent |
+| Engage an enemy, back away from a chosen enemy, hold position or evade | Movement toward the chosen intent; backing away seeks a farther firing position |
 | Fire left, right, up, down or not at all | The exact chosen firing button |
 | Reposition within a cleared room while choosing fire independently | Movement to the chosen position and the current firing button together |
 | Which supported door to enter | Movement through that door |
