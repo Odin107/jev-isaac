@@ -104,6 +104,11 @@ class PlayerNavigator(FloorNavigator):
         context["selected_activity"] = ({"key": self._intent.key, "kind": self._intent.kind}
                                         if self._intent else None)
         context["recent_player_outcomes"] = copy.deepcopy(self.player_events[-6:])
+        context["recent_room_transitions"] = [
+            {"frame": e["frame"], "from_room_index": e["room_index"], "to_room_index": e["target_index"]}
+            for e in self.player_events if e["event"] == "finished"
+            and e["reason"] == "observed room transition" and e["target_index"] is not None][-12:]
+        context["room_transition_scope"] = "Recent confirmed crossings retained on this floor, oldest first; not planned moves or an instruction to repeat them. Manual moves while disarmed are not recorded."
         context["secret_rooms"] = "Observed open secret and supersecret doors can be selected. Unopened hidden entrances are not search/bomb candidates."
         return context
 
@@ -154,14 +159,32 @@ class PlayerNavigator(FloorNavigator):
                                "target_room": room_name(d.target_type),
                                "visited": self._aliases.get(d.target_index) in self._rooms}
                               for d in self._graph.get(destination, ())]
+                pickups = self._pickup_context(destination)
+                return_only = (bool(known_exits) and all(
+                    self._aliases.get(d["target_index"]) == self._current for d in known_exits)
+                    if destination in self._inspected else None)
+                description = (f"{'Revisit' if known is not None else 'Enter'} the observed "
+                               f"{room_name(door.target_type)} room {door.target_index}")
+                if pickups["status"] == "none_observed":
+                    description += "; no remaining pickups at its last complete observation"
+                elif pickups["status"] == "present":
+                    description += f"; {sum(g['count'] for g in pickups['groups'])} pickups last observed"
+                else:
+                    description += "; remaining pickups unknown"
+                if return_only:
+                    description += "; its last observed permitted exits only lead back to this room"
                 choices.append(AdventureCandidate(f"enter:{door.slot}:{door.target_index}", "enter_door",
-                    str(door.target_index), door.point, {}, f"Enter the observed {room_name(door.target_type)} room door",
+                    str(door.target_index), door.point, {}, description,
                     context=_context(state), details={"slot": door.slot, "target_index": door.target_index,
                         "target_type": door.target_type, "visited": known is not None,
                         "clear_last_observed": known[1] if known is not None else None,
                         "remembered_destination_exits": known_exits,
                         "destination_doors_inspected": destination in self._inspected,
+                        "destination_pickups_last_observed": pickups,
+                        "destination_is_known_return_only": return_only,
                         "recent_times_selected_from_here": sum(e["event"] == "selected" for e in recent),
+                        "recent_times_entered_from_here": sum(e["event"] == "finished"
+                            and e["reason"] == "observed room transition" for e in recent),
                         "last_outcome_from_here": next((e["reason"] for e in reversed(recent)
                                                          if e["event"] in ("finished", "failed")), None)}))
             if state["room"]["type"] == 10:

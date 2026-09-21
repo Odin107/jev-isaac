@@ -60,6 +60,18 @@ can override movement and are logged. Local execution preserves the selected
 cardinal firing button. A blocked selected activity returns to Jev rather than
 automatically choosing a different room or pickup.
 
+Open-door candidates include the destination's last complete pickup snapshot,
+including an explicit `none_observed` status. Imported visits without a pickup
+observation remain `unknown`; a remaining or swapped item stays `present`.
+Item-room summaries expose the same distinction. Candidate descriptions and
+choice criteria include these facts, so treasure-room type does not stand in for
+an unclaimed reward. Remembered permitted exits can show a room whose only known
+route returns to the current room, without claiming there are no hidden exits.
+The model also receives up to twelve confirmed room crossings from its bounded
+activity history and per-door completed-entry counts. These are observations,
+not revisit bans or a preferred route; every otherwise supported door remains
+selectable. Same-floor recovery retains memory; a new floor starts fresh.
+
 Cleared rooms also offer general `move_to` positions and an independent `fire`
 question in the same request as activity selection. Jev can move and fire, or hold
 the activity and fire, simultaneously. Repositioning does not collect pickups or

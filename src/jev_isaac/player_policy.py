@@ -67,20 +67,28 @@ class PlayerClient(GoalClient):
                 "and previous outcomes are available as state. Revisiting rooms, skipping rewards "
                 "and descending with unexplored rooms remaining are your decisions. "
                 "controller_context.exploration.item_rooms records whether "
-                "one was found or visited; game_context.item_rooms explains its upgrade value. "
+                "one was found or visited and its last observed pickups; game_context.item_rooms explains its upgrade value. "
                 "game_context.bombs_and_rocks explains bomb costs, tinted rocks and blast risks. "
                 "controller_context.exploration.remembered_pickups lists supplies last seen in other rooms, "
                 "so returning for an earlier heart or resource is an available planning choice when routes permit. "
                 "No local policy will pick a door or collect a reward if you wait. Waiting here holds the activity; "
                 "the independent fire answer may still authorize shooting. "
                 "A door's appearance/type does not reveal its contents. "
+                "Each door candidate's `details.destination_pickups_last_observed` distinguishes "
+                "present pickups, none at the last complete observation, and unknown contents. "
+                "Treasure-room type alone is not evidence of an unclaimed item. Remembered contents and "
+                "permitted exits are last-seen facts, not guarantees of current contents or hidden routes. "
+                "`controller_context.exploration.recent_room_transitions` records actual recent crossings; "
+                "door candidates also count recent completed entries from here. These are history, not commands. "
                 "General move_to activities reposition inside the room without collecting or entering a door. "
                 "Pressing a switch does not authorize TNT demolition; select demolition explicitly "
                 "when needed. Destruction does not automatically select the switch afterward. "
                 "Movement and selected prop-shot alignment are executed locally; emergency collision avoidance can intervene. "
                 "Wait means pause the activity briefly, then reconsider fresh state." + CONTEXT_INSTRUCTIONS),
                 "criteria": {"wait": "Hold the activity; no implied movement, item use or shooting.",
-                             **{option: f"Execute the bound activity {key}." for option, key in bindings.items()}}}}
+                             **{c["option"]: f"{c.get('description', 'Execute this activity')}. "
+                                f"Bound activity {c['key']}; details in `activity_candidates[{i}]`."
+                                for i, c in enumerate(payload["state"]["activity_candidates"])}}}}
             player_contract(payload, "activity")
             if len(offered) == 1 and offered[0]["kind"] == "continue":
                 payload["questions"] = {}

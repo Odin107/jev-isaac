@@ -603,7 +603,7 @@ class FloorNavigator:
                 "remembered_pickups": [dict(copy.deepcopy(value), room_key=room_key(key),
                     room_indices=sorted(i for i, target in self._aliases.items() if target == key))
                     for key, value in sorted(self._room_pickups.items()) if value["groups"]],
-                "pickup_memory_scope": "Pickups last seen in directly observed rooms on this floor. Offscreen contents may change; refresh on revisiting. Empty/visited-room summaries do not reveal unobserved pickups. Memory does not grant collection or prove a route.",
+                "pickup_memory_scope": "Pickups last seen in directly observed rooms on this floor. Offscreen contents may change; refresh on revisiting. Destination/item-room pickup status distinguishes a complete observation with none remaining from unknown contents. Imported visits alone do not reveal pickups. Memory does not grant collection or prove a route.",
                 "map_columns": ["room_key", "grid_aliases", "room_type", "clear_last_observed",
                                 "doors_inspected", "remembered_permitted_doors_slot_target_type"],
                 "map_rows": rooms,
@@ -614,6 +614,14 @@ class FloorNavigator:
                 "recent_interaction_outcomes": [{"frame": e["frame"], "event": e["event"],
                     "candidate_key": e["candidate"]["key"], "reason": e["reason"]} for e in events]}
 
+    def _pickup_context(self, key):
+        """Keep observed absence distinct from an unobserved room's contents."""
+        snapshot = self._room_pickups.get(key)
+        if snapshot is None:
+            return {"status": "unknown", "last_observed_frame": None, "groups": []}
+        return dict(copy.deepcopy(snapshot),
+                    status="present" if snapshot["groups"] else "none_observed")
+
     def _item_room_context(self):
         """Distinguish seen entrances from actual visits, using this floor only."""
         rooms = {}
@@ -621,7 +629,7 @@ class FloorNavigator:
             if key not in rooms:
                 rooms[key] = {"room_key": f"{key[0]}:{key[1]}", "visited": visited,
                     "room_indices": sorted(i for i, target in self._aliases.items() if target == key),
-                    "observed_entrances": []}
+                    "observed_entrances": [], "pickups_last_observed": self._pickup_context(key)}
             return rooms[key]
         for key, (kind, _) in sorted(self._rooms.items()):
             if kind == 4:

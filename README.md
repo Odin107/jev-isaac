@@ -37,6 +37,9 @@ Jev receives item-room discovery/visit status and remembers pickups left in
 visited rooms, including heart types and shop prices. It can weigh returning
 for supplies or searching for an item room. Remembered contents are checked
 again on revisiting; unseen rooms and tinted-rock drops remain unknown.
+Door choices distinguish unknown contents from a room last observed with no
+remaining pickups. They also show remembered exits and recent completed entries;
+Jev receives its recent room crossings without a forced exploration order.
 
 With `--stay-ready`, a connection failure releases control while keeping the
 controller and key open. Press **F8** to retry from fresh state within the same
