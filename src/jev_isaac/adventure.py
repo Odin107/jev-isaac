@@ -351,7 +351,7 @@ def candidates(state, *, rewards_done=False, allow_descend=False, limit=MAX_CAND
             target = _grid_id(grid)
             if _reachable(start, _point(grid), bounds, _geometry(state, radius, remove_grid=target)):
                 result.append(AdventureCandidate(f"descend:{target}", "descend", target, _point(grid), {},
-                    "Enter the observed floor exit after collecting boss-room rewards", context=_context(state),
+                    "Enter the observed floor exit and leave this floor", context=_context(state),
                     details={"grid_type": grid["type"]}))
     return tuple(result[:limit])
 

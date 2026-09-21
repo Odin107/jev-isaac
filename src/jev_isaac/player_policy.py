@@ -23,6 +23,7 @@ class PlayerGoalDecision(GoalDecision):
 def player_contract(payload, phase):
     payload["state"]["game_context"]["control_contract"] = {
         "decision_kind": phase, "authority": "Jev chooses the activity, destination, target and firing intention.",
+        "objective": "Play toward completing the run. Exploration, resource use, risk and timing are Jev's decisions within the available controls.",
         "local_execution": "Pathfinding executes the movement goal; the firing button follows Jev's direction. No independent pickups, room order or puzzle selection.",
         "exceptions": "Fresh immediate collision avoidance may change movement and is reported. Expired or changed-state intent is canceled. A committed explosive retreat finishes before another decision.",
         "firing": "No automatic or substitute shooting. Combat uses only Jev's explicit cardinal firing direction. A selected shoot_prop or demolish_tnt activity authorizes that target's bounded aimed shots and retreat.",
@@ -50,11 +51,12 @@ class PlayerClient(GoalClient):
             payload["questions"] = {"activity": {"type": "choice", "instructions": (
                 "Play The Binding of Isaac: choose your next activity from activity_candidates. "
                 "You own exploration order, free supplies, purchases, items, prop/TNT destruction, "
-                "switches and when to descend. Compare the observed room, resources, inventory, "
-                "controller_context.exploration memory and previous outcomes. No local policy "
-                "will pick a door or collect a reward if you wait. Choose a useful next step "
-                "toward surviving and completing the run; avoid repeating failed activities or "
-                "unnecessary revisits. A door's appearance/type does not reveal its contents. "
+                "switches and when to descend. The objective is to complete the run. "
+                "The observed room, resources, inventory, controller_context.exploration memory "
+                "and previous outcomes are available as state. Revisiting rooms, skipping rewards "
+                "and descending with unexplored rooms remaining are your decisions. No local policy "
+                "will pick a door or collect a reward if you wait. "
+                "A door's appearance/type does not reveal its contents. "
                 "Pressing a switch does not authorize TNT demolition; select demolition explicitly "
                 "when needed. Destruction does not automatically select the switch afterward. "
                 "Movement and selected prop-shot alignment are executed locally; emergency collision avoidance can intervene. "
@@ -73,7 +75,7 @@ class PlayerClient(GoalClient):
                     "to seek a clear firing position, evade threats, or hold position. You own the "
                     "target; the local executor will not pursue a different one. Emergency collision "
                     "avoidance may change a short movement. This answer does NOT authorize shooting; "
-                    "the independent fire answer does. Consider obstacles, health and threat motion. "
+                    "the independent fire answer does. Obstacles, health and threat motion are observed state. "
                     "Unknown enemy phases and effects stay unknown." + CONTEXT_INSTRUCTIONS),
                     "criteria": {"hold": "Hold position, subject to immediate collision avoidance; no implied shooting.",
                                  "evade": "Move away from nearby threats; no implied shooting.",
@@ -82,29 +84,27 @@ class PlayerClient(GoalClient):
                 "fire": {"type": "choice", "instructions": (
                     "Choose the firing button direction right now. You own aiming; local code will "
                     "not substitute a target or direction. You may fire while moving, holding or evading. "
-                    "Aim to hit a living vulnerable enemy from the CURRENT player position. "
-                    "Use combat_context.targets: dx/dy are enemy minus player; positive dx means right, "
+                    "The input applies from the CURRENT player position. "
+                    "In combat_context.targets, dx/dy are enemy minus player; positive dx means right, "
                     "negative dx left, positive dy down, negative dy up. Each target has horizontal "
                     "and vertical lanes with direction, perpendicular offset, alignment and blockers. "
-                    "A lane direction alone is NOT a hit: compare its offset and blockers. "
+                    "A lane's direction describes an enemy's side, not a guaranteed hit. "
                     "combat_context.firing_positions are hypothetical future positions, NOT shots "
-                    "available from where you stand now. Do not copy their shoot field as current aim. "
-                    "Prefer an unblocked current lane; do not keep a previous button merely because "
-                    "it was used before. If no useful shot exists, choose none while repositioning. "
+                    "available from where you stand now; their shoot field is relative to that future position. "
                     "Player momentum affects tear trajectory: moving across the firing axis can make "
-                    "shots travel diagonally. Use observation.player.vx/vy and positions to account for "
-                    "that drift, lead a target, or settle before a precise shot. Releasing movement input "
+                    "shots travel diagonally. observation.player.vx/vy records current player velocity. "
+                    "Releasing movement input "
                     "does not instantly stop momentum. ShotSpeed is not a measured world-velocity or "
                     "momentum multiplier; exact inheritance is uncalibrated. Emergency dodging can "
-                    "change player motion between replies; reassess from fresh observations. These "
+                    "change player motion between replies. These "
                     "questions are answered independently: use observed velocity and applied control, "
                     "not an assumed answer to the movement question. Choose none "
                     "to withhold fire. Coordinates: x right, y down."),
                     "criteria": {"none": "Do not shoot.",
-                                 "left": "Shoot toward smaller x. Aim at an enemy LEFT of the player; compare vertical offset and blockers.",
-                                 "right": "Shoot toward larger x. Aim at an enemy RIGHT of the player; compare vertical offset and blockers.",
-                                 "up": "Shoot toward smaller y. Aim at an enemy ABOVE the player; compare horizontal offset and blockers.",
-                                 "down": "Shoot toward larger y. Aim at an enemy BELOW the player; compare horizontal offset and blockers."}},
+                                 "left": "Press LEFT: firing input toward smaller x, to the LEFT of the player. Momentum can deflect tears.",
+                                 "right": "Press RIGHT: firing input toward larger x, to the RIGHT of the player. Momentum can deflect tears.",
+                                 "up": "Press UP: firing input toward smaller y, ABOVE the player. Momentum can deflect tears.",
+                                 "down": "Press DOWN: firing input toward larger y, BELOW the player. Momentum can deflect tears."}},
             }
             if abilities:
                 abilities = _options(abilities)

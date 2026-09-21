@@ -36,6 +36,13 @@ automatically choosing a different room or pickup.
 
 ## Known limitations
 
+The design policy is to describe the objective, observed state, game mechanics
+and control constraints, and leave strategy to Jev. Prompts do not prescribe
+which rooms to visit, collecting rewards before leaving, when to spend resources,
+or whether to revisit a room. Model-chosen descent is available from a supported
+cleared boss room even while unexplored rooms or rewards remain. Existing local
+pathfinding, immediate dodges and implemented-action limits still apply.
+
 - **Aiming and latency:** replies can arrive after enemy geometry changes.
   Recent live responses were commonly around 350 ms. Better state and prompts
   do not guarantee accurate shooting.
@@ -63,8 +70,10 @@ automatically choosing a different room or pickup.
 
 Python tests use fake model replies and synthetic or recorded game-state
 fixtures. Movement simulations approximate game physics. Lua tests mock engine
-APIs. These checks establish specific contracts and regressions, not competent
-live play or a verified boss victory.
+APIs. These checks establish specific contracts and regressions, not consistent
+live performance. The first Duke of Flies win and model-chosen floor transition
+were separately verified in live logs on 21 September 2026; see
+[the milestone](first-boss.md).
 
 Only the Lua bridge and controller sources, tests and documentation are included.
 Full gameplay reports, local setup notes and credentials are excluded. The

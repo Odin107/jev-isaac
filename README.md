@@ -9,9 +9,10 @@ and puzzle actions. Local code turns those choices into movement and handles
 immediate collision avoidance.
 
 **Work in progress.** It can fight and travel between supported rooms, but still
-makes poor decisions, misses shots and sometimes gets stuck. A complete floor or
-boss victory has not been verified. This is a gameplay experiment, not a reliable
-run-completion bot.
+makes poor decisions, misses shots and sometimes gets stuck. On **21 September
+2026**, it defeated **the Duke of Flies** and chose to descend to floor 2. That
+first boss win is verified in the game and controller logs; consistent floor or
+run completion is still unproven. See [the milestone](docs/first-boss.md).
 
 ## Who controls what?
 
