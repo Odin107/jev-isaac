@@ -11,6 +11,7 @@ local MAX_MOVE_FRAMES, MAX_MOVE_DISTANCE = 6, 24
 local FLOOR_LEASE_SECONDS, CLEAR_ARM_SECONDS = 2, 2
 local BOSS_TRANSITION_SECONDS, BOSS_EARLY_FRAMES = 8, 2
 local FLOOR_DESCENT_SECONDS = 10
+local ITEM_ANIMATION_SECONDS, ITEM_ANIMATION_START_FRAMES = 3, 2
 local MAX_PACKETS, MAX_ACTION_BYTES, MAX_OBS_BYTES = 32, 2048, 60000
 local MAX_ENEMIES, MAX_PROJECTILES, MAX_HAZARDS = 64, 96, 160
 local MAX_PICKUPS, MAX_SWITCHES = 64, 32
@@ -30,6 +31,7 @@ local transport, socketEpoch = nil, 0
 local interactionLedger, interactionCount, lastInteractionFrame = {}, 0, -100
 local inventoryCache, inventoryFrame, inventoryCount, inventoryTruncated = {}, -100, -1, false
 local descentPermit = nil
+local itemAnimationPermit, lastItemUse, minimumActionFrame = nil, nil, 0
 local visitedAliasCache = {key = nil, aliases = {}}
 
 local function resetTransport()
@@ -80,6 +82,7 @@ local function disarm(reason)
     floorLeaseId, floorLeaseRun, floorLeaseUntil = nil, nil, 0
     clearArmUntil, expectedExit, floorTransition = 0, nil, nil
     descentPermit = nil
+    itemAnimationPermit, minimumActionFrame = nil, 0
     status = reason or "F8: enable Jev"
 end
 
@@ -151,6 +154,32 @@ local function floorPermissionAlive(now, id)
         or (descentAlive(now) and (id == nil or id == floorId))
 end
 
+local function itemAnimationAlive(now)
+    local permit = itemAnimationPermit
+    return permit ~= nil and enabled and permit.session == session and permit.room == roomId
+        and permit.floor == floorId and now >= permit.startedAt and now < permit.deadline
+        and game:GetNumPlayers() == 1 and not Isaac.GetPlayer(0):IsDead()
+end
+
+local function updateItemAnimation(now)
+    local permit = itemAnimationPermit
+    if not permit then return end
+    if not itemAnimationAlive(now) then
+        if permit.paused then disarm("Item animation expired: F8 enables Jev"); return true
+        else itemAnimationPermit = nil end
+    elseif permit.paused and not game:IsPaused() and not permit.resumed then
+        -- The first update can precede the unpause render. Restore only the
+        -- short controller lease; all pre-animation inputs have been discarded.
+        permit.resumed = true
+        if permit.floorMode then
+            floorLeaseId, floorLeaseRun, floorLeaseUntil = floorId, runSession, now + FLOOR_LEASE_SECONDS
+        end
+    elseif not permit.paused and (now - permit.startedAt > MAX_RECEIPT_AGE
+        or game:GetFrameCount() - permit.frame > ITEM_ANIMATION_START_FRAMES) then
+        itemAnimationPermit = nil
+    end
+end
+
 local function closeSocket()
     if udp then pcall(function() udp:close() end) end
     udp = nil
@@ -191,6 +220,7 @@ local function openSocket()
 end
 
 local function newRoom()
+    itemAnimationPermit, minimumActionFrame = nil, 0
     resetTransport()
     visit = visit + 1
     local level = game:GetLevel()
@@ -612,9 +642,11 @@ local function observation()
         protocol = 1, type = "observation", session = session, room_id = roomId, run_id = runSession,
         capabilities = {movement_pulses = 1, local_goal_control = 1, floor_control = 1,
             transport_diagnostics = 1, pickup_collection = 1, interaction_control = 1, floor_descent = 1,
-            room_switches = 1, ground_creep = 1},
+            room_switches = 1, ground_creep = 1, item_animations = 1},
         frame = game:GetFrameCount(), enabled = enabled, paused = game:IsPaused(),
         status = status, last_stop_reason = lastStopReason, transport = transport,
+        last_item_use = lastItemUse,
+        item_animation = itemAnimationPermit ~= nil and itemAnimationPermit.paused == true,
         floor = floorState(), floor_mode = floorPermissionAlive(socket.gettime()),
         floor_transition = floorTransition ~= nil or descentPermit ~= nil,
         floor_advance_permitted = descentAlive(socket.gettime()),
@@ -723,7 +755,8 @@ local function parseAction(payload, frame)
     end
     if not integer(data.frame) then return nil, "frame_unknown" end
     if data.frame > frame then return nil, "frame_future" end
-    if frame - data.frame > MAX_AGE or data.frame < lastAccepted then return nil, "frame_old" end
+    if frame - data.frame > MAX_AGE or data.frame < lastAccepted
+        or data.frame < minimumActionFrame then return nil, "frame_old" end
     if not sentFrames[data.frame] then return nil, "frame_unknown" end
     if data.frame == lastAccepted and not revoke then return nil, "frame_duplicate" end
     if not integer(data.hold_frames) or data.hold_frames < 1 or data.hold_frames > MAX_HOLD then return nil, "duration" end
@@ -890,7 +923,35 @@ local function guarded(callback)
     end
 end
 
+local function confirmItemUse(kind, item, usedBy, slot)
+    if not active or not enabled or not udp or not command or game:GetNumPlayers() ~= 1 then return end
+    local player, frame, now = Isaac.GetPlayer(0), game:GetFrameCount(), socket.gettime()
+    local pulse = command.itemInput
+    if not pulse or command.itemUseConfirmed or pulse.kind ~= kind
+        or (kind ~= "pill" and pulse.item ~= item) or (kind == "active" and slot ~= 0)
+        or not usedBy or usedBy.Index ~= player.Index or usedBy.InitSeed ~= player.InitSeed
+        or player:IsDead() or frame ~= command.triggerFrame or not commandAlive(command, frame, now) then return end
+    command.itemUseConfirmed = true
+    lastItemUse = {kind = kind, item = pulse.item, frame = frame, room_id = roomId,
+        interaction_id = command.interaction_id}
+    itemAnimationPermit = {session = session, room = roomId, floor = floorId,
+        startedAt = now, deadline = now + ITEM_ANIMATION_SECONDS, frame = frame,
+        floorMode = command.floor_mode == true}
+    -- Observing the callback must not change the item's animation, cost or effect.
+end
+
+mod:AddCallback(ModCallbacks.MC_USE_ITEM, guarded(function(_, item, _, player, _, slot)
+    confirmItemUse("active", item, player, slot)
+end))
+mod:AddCallback(ModCallbacks.MC_USE_CARD, guarded(function(_, card, player)
+    confirmItemUse("card", card, player)
+end))
+mod:AddCallback(ModCallbacks.MC_USE_PILL, guarded(function(_, _, player)
+    confirmItemUse("pill", nil, player)
+end))
+
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, guarded(function()
+    lastItemUse = nil
     disarm("F8: enable Jev")
     active, runCount, visit = true, runCount + 1, 0
     interactionLedger, interactionCount, lastInteractionFrame = {}, 0, -100
@@ -929,11 +990,13 @@ mod:AddCallback(ModCallbacks.MC_POST_UPDATE, guarded(function()
         else disarm("Floor changed: Jev stopped") end
     end
     if player:IsDead() then disarm("Player died: manual control") end
+    updateItemAnimation(now)
     if descentPermit and not descentAlive(now) then disarm("Floor descent expired: F8 enables Jev") end
     if floorTransition and not transitionAlive(now) then
         disarm("Transition expired: F8 enables Jev")
     end
     if enabled and game:GetRoom():IsClear() and not floorPermissionAlive(now)
+        and not (itemAnimationAlive(now) and itemAnimationPermit.paused)
         and now >= clearArmUntil then
         local reason = clearArmUntil > 0 and "No valid controller reply: F8 retries"
             or (floorLeaseUntil > 0 and "Controller timed out: F8 retries" or "Room cleared: Jev stopped")
@@ -955,7 +1018,10 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, guarded(function()
     -- keys explicitly revoke even while an anticipated door transition is pending.
     local pauseKey = Input.IsButtonTriggered(Keyboard.KEY_ESCAPE, 0)
         or Input.IsButtonTriggered(Keyboard.KEY_P, 0)
+        or (game:GetNumPlayers() == 1
+            and Input.IsActionTriggered(ButtonAction.ACTION_PAUSE, Isaac.GetPlayer(0).ControllerIndex))
     if pauseKey and enabled then disarm("Paused: Jev stopped"); sendObservation() end
+    if updateItemAnimation(now) then sendObservation() end
     if descentPermit and not descentAlive(now) then
         disarm("Floor descent expired: F8 enables Jev"); sendObservation()
     end
@@ -963,7 +1029,18 @@ mod:AddCallback(ModCallbacks.MC_POST_RENDER, guarded(function()
         disarm("Transition expired: F8 enables Jev"); sendObservation()
     end
     if paused ~= lastPaused then
-        if enabled and descentAlive(now) then
+        if itemAnimationAlive(now) and paused and not itemAnimationPermit.paused then
+            itemAnimationPermit.paused = true
+            command, sentFrames, lastAccepted = nil, {}, -1
+            minimumActionFrame = game:GetFrameCount() + 1
+            expectedExit, floorTransition = nil, nil
+            status = "Jev - item animation"
+            Isaac.DebugString("[Jev] Confirmed item animation; controls suspended")
+        elseif itemAnimationAlive(now) and not paused and itemAnimationPermit.resumed then
+            itemAnimationPermit = nil
+            status = "Jev - waiting for fresh controls after item"
+            Isaac.DebugString("[Jev] Item animation finished; waiting for fresh controls")
+        elseif enabled and descentAlive(now) then
             command, sentFrames, lastAccepted = nil, {}, -1
             if paused then status = "Jev floor - descending"
             elseif descentPermit.arrived then status = "Jev floor - waiting for fresh floor controls"
@@ -1027,6 +1104,11 @@ mod:AddCallback(ModCallbacks.MC_INPUT_ACTION, guarded(function(_, entity, hook, 
         if command.interaction == "none" then return nil end
         local down = command.interactionPulse == true and command.interaction == interaction
             and frame == command.triggerFrame
+        if down and not command.itemInput and (interaction == "active" or interaction == "pocket") then
+            local card = interaction == "pocket" and player:GetCard(0) or 0
+            command.itemInput = {kind = interaction == "active" and "active" or (card > 0 and "card" or "pill"),
+                item = interaction == "active" and player:GetActiveItem(0) or (card > 0 and card or player:GetPill(0))}
+        end
         if hook == InputHook.GET_ACTION_VALUE then return down and 1.0 or 0.0 end
         if hook == InputHook.IS_ACTION_PRESSED or hook == InputHook.IS_ACTION_TRIGGERED then return down end
         return nil

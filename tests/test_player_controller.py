@@ -63,6 +63,38 @@ def run(events, choices, *, delay=0, duration=1.5, max_calls=10, checkpoint=None
 
 
 class PlayerControllerTests(unittest.TestCase):
+    def test_item_animation_resumes_same_attempt_without_f8_or_repeating_item(self):
+        for clear in (False, True):
+            with self.subTest(clear=clear):
+                data = ready() if clear else combat()
+                data["player"].update(active_item=85 if clear else 41, active_charge=2, active_max_charge=2)
+                after = copy.deepcopy(data)
+                after["player"]["active_charge"] = 0
+                events = sequence(data, end=.8333333333)
+                events += [(when, frame(after, 28, paused=True, item_animation=True), OLD)
+                           for when in (.9, 1.15, 1.4, 1.65, 1.9, 2.15, 2.4, 2.65, 2.9)]
+                events += sequence(after, start=3, end=3.8, first_frame=29)
+                def choose(payload):
+                    result = {"goal": "hold", "fire": "right", "activity": "wait", "ability": "none"}
+                    for candidate in payload["state"].get("activity_candidates", []):
+                        if candidate["kind"] == "use_active":
+                            result["activity"] = candidate["option"]
+                    for candidate in payload["state"].get("ability_candidates", []):
+                        if candidate["kind"] == "use_active":
+                            result["ability"] = candidate["option"]
+                    return result
+                transport, requests, logs, result = run(events, choose, delay=.05, duration=3.9)
+                self.assertEqual(result["errors"], 0)
+                self.assertEqual(result["stop_reason"], "duration reached")
+                self.assertEqual(result["interaction_pulses"], 1, logs)
+                self.assertFalse(any(.9 <= when < 3 for when, _, _ in transport.sent))
+                resumed = [packet for when, packet, _ in transport.sent if 3 <= when < 3.8]
+                self.assertTrue(any(packet["shoot"] == "right" for packet in resumed))
+                self.assertTrue(all(packet.get("interaction", "none") == "none" for packet in resumed))
+                self.assertFalse(any("Control stopped" in line for line in logs))
+                self.assertTrue(all(not request["state"]["observation"]["paused"] for request in requests))
+                self.assertLessEqual(result["decisions"], 6)
+
     def test_rearm_after_descent_before_first_playable_frame_keeps_attempt_alive(self):
         for arrival_enabled in (True, False):
             with self.subTest(arrival_enabled=arrival_enabled):

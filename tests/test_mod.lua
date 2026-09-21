@@ -34,7 +34,7 @@ local function reset(noSocket)
         stage = 1, stageType = 0, seed = 456, doors = {}, roomType = 1, roomListIndex = 3,
         socketOpens = 0, socketCloses = 0, sockets = {}}
     udp = nil
-    player = {Index = 1, InitSeed = 4, Position = {X = 320, Y = 280}, Velocity = {X = 0, Y = 0},
+    player = {Index = 1, InitSeed = 4, ControllerIndex = 0, Position = {X = 320, Y = 280}, Velocity = {X = 0, Y = 0},
         Type = 1, Variant = 0, SubType = 0, Size = 12, MoveSpeed = 1,
         IsDead = function() return mock.dead end, ToPlayer = function(self) return self end,
         GetHearts = function() return 6 end, GetSoulHearts = function() return 0 end,
@@ -154,6 +154,11 @@ local function reset(noSocket)
         if key == Keyboard.KEY_F8 then local pressed = mock.keys; mock.keys = false; return pressed end
         if key == mock.pauseKey then mock.pauseKey = nil; return true end
         return false
+    end, IsActionTriggered = function(action, controller)
+        assert(action == ButtonAction.ACTION_PAUSE and controller == player.ControllerIndex)
+        local pressed = mock.pauseAction == true
+        mock.pauseAction = false
+        return pressed
     end}
     _G.Keyboard = {KEY_F8 = 297, KEY_ESCAPE = 256, KEY_P = 80}
     _G.InputHook = {IS_ACTION_PRESSED = 0, IS_ACTION_TRIGGERED = 1, GET_ACTION_VALUE = 2}
@@ -169,7 +174,8 @@ local function reset(noSocket)
         GRID_TRAPDOOR = 17, GRID_STAIRS = 18, GRID_TELEPORTER = 23}
     _G.ModCallbacks = {}
     for _, name in ipairs({"MC_POST_GAME_STARTED", "MC_POST_NEW_ROOM", "MC_POST_UPDATE",
-        "MC_POST_RENDER", "MC_INPUT_ACTION", "MC_PRE_GAME_EXIT", "MC_POST_GAME_END"}) do ModCallbacks[name] = name end
+        "MC_POST_RENDER", "MC_INPUT_ACTION", "MC_PRE_GAME_EXIT", "MC_POST_GAME_END",
+        "MC_USE_ITEM", "MC_USE_CARD", "MC_USE_PILL"}) do ModCallbacks[name] = name end
     _G.require = function(name)
         if name == "json" then return {encode = encode, decode = decode} end
         if mock.socketMissing then error("socket unavailable") end
@@ -1282,6 +1288,112 @@ check("interaction replay IDs survive rearming and room changes but reset on a n
     callbacks.MC_POST_GAME_STARTED(nil, false); toggle()
     queue({interaction = "bomb", interaction_id = "once"}); tick(61); tick(62)
     assert(input(ButtonAction.ACTION_BOMB) == 1)
+end)
+local function useItem(kind, clear)
+    reset(); mock.clear = clear == true
+    mock.activeItem, mock.activeCharge, mock.card, mock.pill = 41, 2, 19, 5
+    if kind == "pill" then mock.card = 0 end
+    toggle()
+    local interaction = kind == "active" and "active" or "pocket"
+    queue({interaction = interaction, interaction_id = "use-one", floor_mode = true})
+    tick(0); mock.frame = 1
+    assert(input(kind == "active" and ButtonAction.ACTION_ITEM or ButtonAction.ACTION_PILLCARD) == 1)
+    if kind == "active" then
+        if callbacks.MC_USE_ITEM then assert(callbacks.MC_USE_ITEM(nil, 41, {}, player, 4, 0, 0) == nil) end
+        mock.activeCharge = 0
+    elseif kind == "card" then
+        if callbacks.MC_USE_CARD then callbacks.MC_USE_CARD(nil, 19, player, 0) end
+        mock.card = 0
+    else
+        mock.card = 0
+        if callbacks.MC_USE_PILL then callbacks.MC_USE_PILL(nil, 7, player, 0) end
+        mock.pill = 0
+    end
+end
+check("confirmed item animations preserve control and resume only fresh inputs", function()
+    for _, kind in ipairs({"active", "card", "pill"}) do
+        for _, clear in ipairs({false, true}) do
+            useItem(kind, clear)
+            local oldPacket = action({frame = 0, floor_mode = true})
+            mock.paused = true; render()
+            assert(observationHas('"enabled":true'), kind)
+            assert(observationHas('"item_animations":1') and observationHas('"item_animation":true'))
+            assert(observationHas('"last_item_use":') and observationHas('"kind":"' .. kind .. '"'))
+            assert(input() == nil and input(ButtonAction.ACTION_ITEM) == nil)
+            mock.now = mock.now + 2.2; render()
+            assert(observationHas('"enabled":true'))
+            mock.paused = false; render()
+            assert(observationHas('"enabled":true') and input() == nil)
+            mock.incoming = {oldPacket}; tick(1, 0)
+            assert(transportState().accepted == 1 and input() == nil)
+            queue({floor_mode = true}); tick(1, 0)
+            assert(input() == nil, "even an unpaused copy of the frozen frame is too old")
+            tick(2, .03); queue({floor_mode = true, move = "right", shoot = "up"}); tick(2, 0)
+            assert(input(ButtonAction.ACTION_RIGHT) == 1 and input(ButtonAction.ACTION_SHOOTUP) == 1)
+            assert(input(ButtonAction.ACTION_ITEM) ~= 1, "item must not be used again")
+        end
+    end
+end)
+check("item unpause handles update before render without losing the fresh command", function()
+    useItem("active", true); mock.paused = true; render()
+    mock.now = mock.now + 2.2; mock.paused = false; tick(2, 0)
+    assert(observationHas('"enabled":true'))
+    queue({floor_mode = true}); tick(2, 0); render()
+    assert(observationHas('"enabled":true') and input() == 1)
+end)
+check("manual stops and item animation expiry never resume automatically", function()
+    for _, stop in ipairs({"escape", "p", "controller", "off", "death", "expiry", "room", "floor"}) do
+        useItem("active", true); mock.paused = true; render()
+        if stop == "escape" then mock.pauseKey = Keyboard.KEY_ESCAPE
+        elseif stop == "p" then mock.pauseKey = Keyboard.KEY_P
+        elseif stop == "controller" then mock.pauseAction = true
+        elseif stop == "off" then mock.keys = true
+        elseif stop == "death" then mock.dead = true
+        elseif stop == "expiry" then mock.now = mock.now + 3.01
+        elseif stop == "room" then mock.index = 11; callbacks.MC_POST_NEW_ROOM()
+        elseif stop == "floor" then mock.stage = 2; callbacks.MC_POST_NEW_ROOM() end
+        render(); assert(observationHas('"enabled":false'), stop)
+        mock.paused = false; render(); tick(2, 0)
+        assert(observationHas('"enabled":false') and input() == nil, stop)
+    end
+end)
+check("an item packet without confirmed use cannot authorize a pause", function()
+    for _, failure in ipairs({"no_callback", "no_input", "wrong_item", "wrong_player", "wrong_slot", "late"}) do
+        reset(); mock.activeItem = 41; toggle()
+        queue({interaction = "active", interaction_id = "unconfirmed", floor_mode = true}); tick(0)
+        mock.frame = 1
+        if failure ~= "no_input" then input(ButtonAction.ACTION_ITEM) end
+        local target = failure == "wrong_player" and {Index = 99, InitSeed = 99} or player
+        if failure == "late" then mock.frame = 4 end
+        if failure ~= "no_callback" then
+            callbacks.MC_USE_ITEM(nil, failure == "wrong_item" and 34 or 41, {}, target, 4,
+                failure == "wrong_slot" and 1 or 0, 0)
+        end
+        mock.paused = true; render(); assert(observationHas('"enabled":false'), failure)
+    end
+end)
+check("a use without an animation does not authorize an unrelated later pause", function()
+    useItem("active"); tick(4, .1)
+    mock.paused = true; render(); assert(observationHas('"enabled":false'))
+    useItem("active"); mock.now = mock.now + .6
+    mock.paused = true; render(); assert(observationHas('"enabled":false'))
+end)
+check("resumed item permission is bounded and cannot authorize another pause", function()
+    useItem("active", true); mock.paused = true; render()
+    mock.paused = false; render(); tick(2, .03)
+    mock.paused = true; render(); assert(observationHas('"enabled":false'))
+    useItem("active", true); mock.paused = true; render()
+    mock.paused = false; render(); tick(2, 2.1)
+    assert(observationHas('"enabled":false'))
+end)
+check("duplicate item callbacks cannot renew the animation deadline", function()
+    useItem("active")
+    mock.now = mock.now + .3
+    callbacks.MC_USE_ITEM(nil, 41, {}, player, 32, 0, 0)
+    mock.paused = true; render()
+    mock.now = mock.now + 2.75; render()
+    assert(observationHas('"enabled":false'))
+    assert(observationHas('"last_stop_reason":"Item animation expired: F8 enables Jev"'))
 end)
 check("interaction cooldown suppresses pulses without dropping movement and permits later retry", function()
     reset(); toggle(); queue({interaction = "bomb", interaction_id = "first"}); tick(0); tick(1)

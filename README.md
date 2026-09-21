@@ -131,5 +131,10 @@ must use the new files. A Lua update requires restarting Isaac; a Python update
 requires restarting the controller. Pause and stale-state guards can also require
 a fresh F8 activation.
 
+**Stopped after using an active item:** update the Lua mod and restart Isaac.
+Confirmed item-use animations now release inputs temporarily and resume with
+fresh controls, without treating the animation as a manual pause. Actual pause
+buttons still stop Jev. The controller can remain open with its existing key.
+
 This is an independent fan experiment, unaffiliated with the creators of Isaac.
 You need your own game installation and TypeSafe access.

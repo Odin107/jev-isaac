@@ -55,6 +55,19 @@ the player radius plus two units around the observed fire body. Normal routes
 retain the larger buffer; contact overlap, inward momentum, unobserved/special
 fire behavior and all other obstacle exclusions still block this recovery.
 
+The bridge distinguishes a confirmed item-use animation from an ordinary pause.
+Isaac's [`Game:IsPaused()`](https://wofsauge.github.io/IsaacDocs/rep/Game.html#ispaused)
+also covers full-screen item animations. A matching item/card/pill use callback
+after an emitted Jev input permits one animation in the same room, beginning
+within two simulation ticks and 0.55 seconds, and ending within three seconds of
+use. Movement and firing are released throughout. Resume requires observations
+from after the frozen frame; old commands and item pulses cannot replay. The
+controller keeps the same attempt and budgets. Escape, P, controller pause, F8,
+death, unexpected room changes and the deadline still revoke control. A use
+callback alone cannot authorize a pause without the corresponding Jev pulse.
+`last_item_use` and `item_animation` provide observed diagnostics. Teleporting or
+unusually long item effects may still require manual rearming.
+
 ## Known limitations
 
 The design policy is to describe the objective, observed state, game mechanics
